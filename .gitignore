@@ -7,9 +7,10 @@
 news-api
 news
 main
-api
 worker
 app
+
+# Note: 'api' removed from here to allow cmd/api/ directory
 
 # Compiled binaries directory
 /bin/
@@ -137,11 +138,11 @@ docker-compose.override.yml
 *.tar.gz
 
 # Go compiled binaries
-/cmd/api/api
-/cmd/migrate/migrate
-/cmd/*/main
-/cmd/*/*.exe
-/cmd/*/*.test
+# /cmd/api/api
+# /cmd/migrate/migrate
+# /cmd/*/main
+# /cmd/*/*.exe
+# /cmd/*/*.test
 
 # Additional build artifacts
 *.out

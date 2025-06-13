@@ -68,10 +68,7 @@ jobs:
           GOARCH: amd64
         run: |
           echo "🔨 Building with version info..."
-          echo "Go version: $(go version)"
-          echo "Working directory: $(pwd)"
-          echo "Go env GOMOD: $(go env GOMOD)"
-          ls -la cmd/api/
+          mkdir -p bin
           go build \
             -v \
             -ldflags "-w -s -X news/internal/version.Version=${{ steps.version.outputs.VERSION }} -X news/internal/version.BuildTime=${{ steps.version.outputs.BUILD_TIME }} -X news/internal/version.GitCommit=${{ steps.version.outputs.GIT_COMMIT }}" \

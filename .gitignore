@@ -18,6 +18,7 @@ app
 # Test binary, built with `go test -c`
 *.test
 
+
 # Output of the go coverage tool
 *.out
 *.prof
@@ -209,7 +210,5 @@ docs/docs.go
 
 
 # Scripts and automation
-scripts/
 demo/
-migrations/
 tmp

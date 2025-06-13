@@ -3,7 +3,7 @@
 # Simple, clean commands for dev/test/prod environments
 # Port allocation: dev:8081/5433/6380, test:8082/5434/6381, prod:8080/5433/6379
 
-.PHONY: help deps-check dev test prod stop clean logs status health build seed db-tables db-reset db-status docs docs-serve docs-stop docs-local test-status test-local test-docker test-unit test-integration test-e2e test-all test-coverage test-watch test-run test-verbose test-setup test-clean version build-with-version release-tag changelog-update
+.PHONY: help deps-check dev test prod stop clean logs status health build seed db-tables db-reset db-status docs docs-serve docs-stop docs-local test-status test-local test-docker test-unit test-integration test-e2e test-all test-coverage test-watch test-run test-verbose test-setup test-clean version build-with-version release release-tag changelog-update create-release
 
 # Default target
 .DEFAULT_GOAL := help
@@ -70,6 +70,7 @@ help: ## Show this help message
 	@echo "🏷️  Versioning Commands:"
 	@echo "  make version           → Show current version info"
 	@echo "  make build-with-version → Build with version information"
+	@echo "  make create-release    → Create GitHub release (VERSION=v1.1.0)"
 	@echo "  make release-tag       → Create release tag (VERSION=v1.1.0)"
 	@echo "  make changelog-update  → Reminder to update changelog"
 	@echo ""
@@ -812,6 +813,34 @@ build-with-version: ## Build with version information
 	@echo "🔨 Building with version info..."
 	go build -ldflags "-X news/internal/version.Version=$(VERSION) -X news/internal/version.BuildTime=$(BUILD_TIME) -X news/internal/version.GitCommit=$(GIT_COMMIT)" -o bin/news-api cmd/api/main.go
 
+release: ## Create GitHub release via workflow dispatch (usage: make release VERSION=v1.1.0)
+	@if [ -z "$(VERSION)" ]; then \
+		echo "❌ VERSION is required. Usage: make release VERSION=v1.1.0"; \
+		exit 1; \
+	fi
+	@echo "🚀 Triggering GitHub release workflow for $(VERSION)..."
+	@echo "📝 Make sure you have updated CHANGELOG.md first!"
+	@echo "🌐 Go to: https://github.com/Madraka/GONews/actions/workflows/release.yml"
+	@echo "🎯 Click 'Run workflow' and enter version: $(VERSION)"
+	@echo ""
+	@echo "⚡ Or use GitHub CLI (if installed):"
+	@echo "   gh workflow run release.yml -f version=$(VERSION)"
+
+changelog-update: ## Update changelog for new version
+	@echo "📝 Please update CHANGELOG.md with new version changes"
+	@echo "   Add new section for version $(VERSION)"
+
+create-release: ## Create GitHub release manually (usage: make create-release VERSION=v1.1.0)
+	@if [ -z "$(VERSION)" ]; then \
+		echo "❌ VERSION is required. Usage: make create-release VERSION=v1.1.0"; \
+		exit 1; \
+	fi
+	@echo "🚀 Creating GitHub release $(VERSION)..."
+	@echo "📝 Go to: https://github.com/Madraka/GONews/actions/workflows/release.yml"
+	@echo "🎯 Click 'Run workflow' and enter version: $(VERSION)"
+	@echo "✅ This will automatically create tag, build, test and release!"
+
+# Legacy tag-based release (keeping for compatibility)
 release-tag: ## Create a new release tag (usage: make release-tag VERSION=v1.1.0)
 	@if [ -z "$(VERSION)" ]; then \
 		echo "❌ VERSION is required. Usage: make release-tag VERSION=v1.1.0"; \
@@ -821,7 +850,3 @@ release-tag: ## Create a new release tag (usage: make release-tag VERSION=v1.1.0
 	git tag -a $(VERSION) -m "Release $(VERSION)"
 	git push origin $(VERSION)
 	@echo "✅ Tag $(VERSION) created and pushed"
-
-changelog-update: ## Update changelog for new version
-	@echo "📝 Please update CHANGELOG.md with new version changes"
-	@echo "   Add new section for version $(VERSION)"

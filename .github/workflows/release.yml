@@ -1,9 +1,17 @@
 name: Release
 
 on:
-  push:
-    tags:
-      - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version (e.g., v1.2.0)'
+        required: true
+        type: string
+      prerelease:
+        description: 'Mark as pre-release'
+        required: false
+        type: boolean
+        default: false
 
 jobs:
   release:
@@ -17,38 +25,91 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v4
         with:
-          go-version: '1.24'
+          go-version: '1.24.3'
+
+      - name: Cache Go modules
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/go/pkg/mod
+            ~/.cache/go-build
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-
+
+      - name: Download dependencies
+        run: go mod download
 
       - name: Get version info
         id: version
         run: |
-          echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+          echo "VERSION=${{ github.event.inputs.version }}" >> $GITHUB_OUTPUT
           echo "BUILD_TIME=$(date -u '+%Y-%m-%d_%H:%M:%S')" >> $GITHUB_OUTPUT
           echo "GIT_COMMIT=${GITHUB_SHA}" >> $GITHUB_OUTPUT
 
+      - name: Create directory for binaries
+        run: mkdir -p bin
+
       - name: Build binaries
         run: |
-          make build-with-version VERSION=${{ steps.version.outputs.VERSION }}
+          echo "🔨 Building with version info..."
+          go build \
+            -ldflags "-X news/internal/version.Version=${{ steps.version.outputs.VERSION }} -X news/internal/version.BuildTime=${{ steps.version.outputs.BUILD_TIME }} -X news/internal/version.GitCommit=${{ steps.version.outputs.GIT_COMMIT }}" \
+            -o bin/news-api \
+            cmd/api/main.go
 
       - name: Run tests
         run: |
-          make test-unit
+          go test ./... -v
 
-      - name: Create Release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Create git tag
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag -a ${{ steps.version.outputs.VERSION }} -m "Release ${{ steps.version.outputs.VERSION }}"
+          git push origin ${{ steps.version.outputs.VERSION }}
+
+      - name: Generate release notes
+        id: release_notes
+        run: |
+          cat > release_notes.md << 'EOF'
+          ## 🚀 Changes in ${{ steps.version.outputs.VERSION }}
+          
+          Please check [CHANGELOG.md](CHANGELOG.md) for detailed changes.
+          
+          ## 📦 Build Information
+          - **Version**: ${{ steps.version.outputs.VERSION }}
+          - **Build Time**: ${{ steps.version.outputs.BUILD_TIME }}
+          - **Git Commit**: ${{ steps.version.outputs.GIT_COMMIT }}
+          - **Go Version**: 1.24.3
+          
+          ## 🛠️ Installation
+          
+          ### Download Binary
+          Download the appropriate binary for your platform from the assets below.
+          
+          ### Build from Source
+          ```bash
+          git clone https://github.com/Madraka/GONews.git
+          cd GONews
+          go build -o news-api cmd/api/main.go
+          ```
+          
+          ## 🐳 Docker
+          ```bash
+          docker pull ghcr.io/madraka/gonews:${{ steps.version.outputs.VERSION }}
+          ```
+          EOF
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
         with:
           tag_name: ${{ steps.version.outputs.VERSION }}
-          release_name: Release ${{ steps.version.outputs.VERSION }}
-          body: |
-            ## Changes in ${{ steps.version.outputs.VERSION }}
-            
-            Please check [CHANGELOG.md](CHANGELOG.md) for detailed changes.
-            
-            **Build Information:**
-            - Version: ${{ steps.version.outputs.VERSION }}
-            - Build Time: ${{ steps.version.outputs.BUILD_TIME }}
-            - Git Commit: ${{ steps.version.outputs.GIT_COMMIT }}
+          name: "Release ${{ steps.version.outputs.VERSION }}"
+          body_path: release_notes.md
           draft: false
-          prerelease: false
+          prerelease: ${{ github.event.inputs.prerelease }}
+          files: |
+            bin/news-api
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

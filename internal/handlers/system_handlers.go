@@ -3,6 +3,7 @@ package handlers
 import (
 	"net/http"
 	"news/internal/json"
+	"news/internal/version"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -195,5 +196,20 @@ func TestJSONPerformance(c *gin.Context) {
 		},
 		"test_timestamp": time.Now(),
 		"status":         "✅ Sonic JSON working optimally - HOT RELOAD VERIFIED ✅",
+	})
+}
+
+// GetVersion godoc
+// @Summary Get API version information
+// @Description Get current API version, build time, and git commit
+// @Tags System
+// @Produce json
+// @Success 200 {object} version.VersionInfo
+// @Router /version [get]
+func GetVersion(c *gin.Context) {
+	versionInfo := version.GetVersionInfo()
+	c.JSON(http.StatusOK, gin.H{
+		"status": "success",
+		"data":   versionInfo,
 	})
 }

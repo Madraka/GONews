@@ -211,6 +211,9 @@ func RegisterRoutes(r *gin.Engine) {
 		c.JSON(statusCode, response)
 	})
 
+	// Version endpoint - no auth required
+	r.GET("/version", handlers.GetVersion)
+
 	// Global rate limiter (optimized for high-concurrency load testing)
 	r.Use(middleware.RateLimit(50000, 100000, false)) // 50000 reqs/min, burst 100000
 

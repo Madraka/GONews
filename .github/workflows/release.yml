@@ -1,0 +1,54 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.24'
+
+      - name: Get version info
+        id: version
+        run: |
+          echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+          echo "BUILD_TIME=$(date -u '+%Y-%m-%d_%H:%M:%S')" >> $GITHUB_OUTPUT
+          echo "GIT_COMMIT=${GITHUB_SHA}" >> $GITHUB_OUTPUT
+
+      - name: Build binaries
+        run: |
+          make build-with-version VERSION=${{ steps.version.outputs.VERSION }}
+
+      - name: Run tests
+        run: |
+          make test-unit
+
+      - name: Create Release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ steps.version.outputs.VERSION }}
+          release_name: Release ${{ steps.version.outputs.VERSION }}
+          body: |
+            ## Changes in ${{ steps.version.outputs.VERSION }}
+            
+            Please check [CHANGELOG.md](CHANGELOG.md) for detailed changes.
+            
+            **Build Information:**
+            - Version: ${{ steps.version.outputs.VERSION }}
+            - Build Time: ${{ steps.version.outputs.BUILD_TIME }}
+            - Git Commit: ${{ steps.version.outputs.GIT_COMMIT }}
+          draft: false
+          prerelease: false

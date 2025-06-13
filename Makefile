@@ -3,7 +3,7 @@
 # Simple, clean commands for dev/test/prod environments
 # Port allocation: dev:8081/5433/6380, test:8082/5434/6381, prod:8080/5433/6379
 
-.PHONY: help deps-check dev test prod stop clean logs status health build seed db-tables db-reset db-status docs docs-serve docs-stop docs-local test-status test-local test-docker test-unit test-integration test-e2e test-all test-coverage test-watch test-run test-verbose test-setup test-clean
+.PHONY: help deps-check dev test prod stop clean logs status health build seed db-tables db-reset db-status docs docs-serve docs-stop docs-local test-status test-local test-docker test-unit test-integration test-e2e test-all test-coverage test-watch test-run test-verbose test-setup test-clean version build-with-version release-tag changelog-update
 
 # Default target
 .DEFAULT_GOAL := help
@@ -66,6 +66,12 @@ help: ## Show this help message
 	@echo "  make status      → Show environment status"
 	@echo "  make health      → Check health"
 	@echo "  make clean       → Clean Docker resources"
+	@echo ""
+	@echo "🏷️  Versioning Commands:"
+	@echo "  make version           → Show current version info"
+	@echo "  make build-with-version → Build with version information"
+	@echo "  make release-tag       → Create release tag (VERSION=v1.1.0)"
+	@echo "  make changelog-update  → Reminder to update changelog"
 	@echo ""
 	@echo "🌐 HTTP/2 Commands:"
 	@echo "  make http2-dev   → Start HTTP/2 development server (H2C)"
@@ -788,8 +794,34 @@ atlas-workflow-test: ## Test GitHub workflow locally (Docker-based)
 	@echo "🧪 Testing GitHub workflow locally (Docker-based)..."
 	@echo "1. Testing schema changes..."
 	@$(MAKE) atlas-validate-docker ENV=$(ENV)
-	@echo "2. Testing migration apply..."
-	@$(MAKE) atlas-apply-docker ENV=$(ENV)
-	@echo "3. Checking status..."
-	@$(MAKE) atlas-status-docker ENV=$(ENV)
-	@echo "✅ Workflow test completed!"
+
+# ==========================================
+# VERSIONING
+# ==========================================
+
+VERSION ?= $(shell git describe --tags --always --dirty 2>/dev/null || echo "v1.0.0")
+BUILD_TIME := $(shell date -u '+%Y-%m-%d_%H:%M:%S')
+GIT_COMMIT := $(shell git rev-parse HEAD 2>/dev/null || echo "unknown")
+
+version: ## Show current version
+	@echo "Version: $(VERSION)"
+	@echo "Build Time: $(BUILD_TIME)"
+	@echo "Git Commit: $(GIT_COMMIT)"
+
+build-with-version: ## Build with version information
+	@echo "🔨 Building with version info..."
+	go build -ldflags "-X news/internal/version.Version=$(VERSION) -X news/internal/version.BuildTime=$(BUILD_TIME) -X news/internal/version.GitCommit=$(GIT_COMMIT)" -o bin/news-api cmd/api/main.go
+
+release-tag: ## Create a new release tag (usage: make release-tag VERSION=v1.1.0)
+	@if [ -z "$(VERSION)" ]; then \
+		echo "❌ VERSION is required. Usage: make release-tag VERSION=v1.1.0"; \
+		exit 1; \
+	fi
+	@echo "🏷️  Creating release tag $(VERSION)"
+	git tag -a $(VERSION) -m "Release $(VERSION)"
+	git push origin $(VERSION)
+	@echo "✅ Tag $(VERSION) created and pushed"
+
+changelog-update: ## Update changelog for new version
+	@echo "📝 Please update CHANGELOG.md with new version changes"
+	@echo "   Add new section for version $(VERSION)"

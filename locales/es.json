@@ -1,0 +1,551 @@
+{
+  "errors.validation.required": {
+    "other": "Este campo es obligatorio"
+  },
+  "errors.validation.invalid_email": {
+    "other": "Por favor, introduce una dirección de email válida"
+  },
+  "errors.validation.invalid_password": {
+    "other": "La contraseña debe tener al menos 8 caracteres"
+  },
+  "errors.validation.min_length": {
+    "other": "Este campo debe tener al menos {{.Min}} caracteres"
+  },
+  "errors.validation.max_length": {
+    "other": "Este campo no puede exceder {{.Max}} caracteres"
+  },
+  "errors.validation.invalid_format": {
+    "other": "Formato inválido"
+  },
+  "errors.validation.invalid_url": {
+    "other": "Por favor, introduce una URL válida"
+  },
+  "errors.validation.phone": {
+    "other": "Por favor, introduce un número de teléfono válido"
+  },
+  "errors.validation.unique": {
+    "other": "Este valor ya está en uso"
+  },
+  "errors.auth.invalid_credentials": {
+    "other": "Email o contraseña inválidos"
+  },
+  "errors.auth.unauthorized": {
+    "other": "No tienes autorización para realizar esta acción"
+  },
+  "errors.auth.token_expired": {
+    "other": "Tu sesión ha expirado"
+  },
+  "errors.auth.token_invalid": {
+    "other": "Token inválido"
+  },
+  "errors.auth.user_not_found": {
+    "other": "Usuario no encontrado"
+  },
+  "errors.auth.user_disabled": {
+    "other": "La cuenta de usuario ha sido deshabilitada"
+  },
+  "errors.auth.password_reset_required": {
+    "other": "Restablecimiento de contraseña requerido"
+  },
+  "errors.auth.account_locked": {
+    "other": "La cuenta ha sido bloqueada"
+  },
+  "errors.articles.not_found": {
+    "other": "Artículo no encontrado"
+  },
+  "errors.articles.already_published": {
+    "other": "El artículo ya está publicado"
+  },
+  "errors.articles.cannot_delete_published": {
+    "other": "No se puede eliminar artículo publicado"
+  },
+  "errors.articles.category_required": {
+    "other": "La categoría es obligatoria"
+  },
+  "errors.articles.invalid_status": {
+    "other": "Estado de artículo inválido"
+  },
+  "errors.articles.slug_exists": {
+    "other": "Ya existe un artículo con esta URL"
+  },
+  "errors.articles.translation_exists": {
+    "other": "Ya existe una traducción para este idioma"
+  },
+  "errors.general.internal_server": {
+    "other": "Error interno del servidor"
+  },
+  "errors.general.database_error": {
+    "other": "Error de base de datos"
+  },
+  "errors.general.forbidden": {
+    "other": "Acceso prohibido"
+  },
+  "errors.general.method_not_allowed": {
+    "other": "Método no permitido"
+  },
+  "errors.general.too_many_requests": {
+    "other": "Demasiadas solicitudes"
+  },
+  "errors.general.service_unavailable": {
+    "other": "Servicio no disponible"
+  },
+  "errors.general.invalid_file_type": {
+    "other": "Tipo de archivo inválido"
+  },
+  "errors.general.file_upload_failed": {
+    "other": "Error al subir archivo"
+  },
+  "messages.success.created": {
+    "other": "Creado exitosamente"
+  },
+  "messages.success.updated": {
+    "other": "Actualizado exitosamente"
+  },
+  "messages.success.deleted": {
+    "other": "Eliminado exitosamente"
+  },
+  "messages.success.saved": {
+    "other": "Guardado exitosamente"
+  },
+  "messages.success.published": {
+    "other": "Publicado exitosamente"
+  },
+  "messages.success.uploaded": {
+    "other": "Subido exitosamente"
+  },
+  "messages.info.loading": {
+    "other": "Cargando..."
+  },
+  "messages.info.no_data": {
+    "other": "No hay datos disponibles"
+  },
+  "messages.info.coming_soon": {
+    "other": "Próximamente"
+  },
+  "messages.info.under_maintenance": {
+    "other": "En mantenimiento"
+  },
+  "ui.navigation.home": {
+    "other": "Inicio"
+  },
+  "ui.navigation.articles": {
+    "other": "Artículos"
+  },
+  "ui.navigation.categories": {
+    "other": "Categorías"
+  },
+  "ui.navigation.tags": {
+    "other": "Etiquetas"
+  },
+  "ui.navigation.users": {
+    "other": "Usuarios"
+  },
+  "ui.navigation.search": {
+    "other": "Buscar"
+  },
+  "ui.navigation.login": {
+    "other": "Iniciar Sesión"
+  },
+  "ui.navigation.logout": {
+    "other": "Cerrar Sesión"
+  },
+  "ui.navigation.register": {
+    "other": "Registrarse"
+  },
+  "ui.navigation.dashboard": {
+    "other": "Panel"
+  },
+  "ui.navigation.profile": {
+    "other": "Perfil"
+  },
+  "ui.navigation.admin": {
+    "other": "Administración"
+  },
+  "ui.navigation.settings": {
+    "other": "Configuración"
+  },
+  "ui.forms.title": {
+    "other": "Título"
+  },
+  "ui.forms.content": {
+    "other": "Contenido"
+  },
+  "ui.forms.summary": {
+    "other": "Resumen"
+  },
+  "ui.forms.category": {
+    "other": "Categoría"
+  },
+  "ui.forms.tags": {
+    "other": "Etiquetas"
+  },
+  "ui.forms.language": {
+    "other": "Idioma"
+  },
+  "ui.forms.author": {
+    "other": "Autor"
+  },
+  "ui.forms.featured_image": {
+    "other": "Imagen Destacada"
+  },
+  "ui.forms.meta_description": {
+    "other": "Meta Descripción"
+  },
+  "ui.forms.publish_date": {
+    "other": "Fecha de Publicación"
+  },
+  "ui.forms.slug": {
+    "other": "URL"
+  },
+  "ui.forms.status": {
+    "other": "Estado"
+  },
+  "ui.forms.search_placeholder": {
+    "other": "Buscar artículos..."
+  },
+  "ui.buttons.create": {
+    "other": "Crear"
+  },
+  "ui.buttons.edit": {
+    "other": "Editar"
+  },
+  "ui.buttons.delete": {
+    "other": "Eliminar"
+  },
+  "ui.buttons.save": {
+    "other": "Guardar"
+  },
+  "ui.buttons.cancel": {
+    "other": "Cancelar"
+  },
+  "ui.buttons.submit": {
+    "other": "Enviar"
+  },
+  "ui.buttons.update": {
+    "other": "Actualizar"
+  },
+  "ui.buttons.publish": {
+    "other": "Publicar"
+  },
+  "ui.buttons.draft": {
+    "other": "Guardar como Borrador"
+  },
+  "ui.buttons.preview": {
+    "other": "Vista Previa"
+  },
+  "ui.buttons.reset": {
+    "other": "Restablecer"
+  },
+  "ui.buttons.confirm": {
+    "other": "Confirmar"
+  },
+  "ui.labels.author": {
+    "other": "Autor"
+  },
+  "ui.labels.published_date": {
+    "other": "Fecha de Publicación"
+  },
+  "ui.labels.read_time": {
+    "other": "Tiempo de Lectura"
+  },
+  "ui.labels.views": {
+    "other": "Visualizaciones"
+  },
+  "ui.labels.comments": {
+    "other": "Comentarios"
+  },
+  "ui.labels.likes": {
+    "other": "Me Gusta"
+  },
+  "ui.labels.shares": {
+    "other": "Compartir"
+  },
+  "ui.labels.language": {
+    "other": "Idioma"
+  },
+  "ui.labels.original_language": {
+    "other": "Idioma Original"
+  },
+  "ui.labels.translations": {
+    "other": "Traducciones"
+  },
+  "ui.labels.status": {
+    "other": "Estado"
+  },
+  "ui.labels.actions": {
+    "other": "Acciones"
+  },
+  "ui.labels.name": {
+    "other": "Nombre"
+  },
+  "ui.labels.email": {
+    "other": "Email"
+  },
+  "ui.labels.password": {
+    "other": "Contraseña"
+  },
+  "ui.labels.confirm_password": {
+    "other": "Confirmar Contraseña"
+  },
+  "ui.labels.search": {
+    "other": "Buscar"
+  },
+  "ui.labels.filter": {
+    "other": "Filtrar"
+  },
+  "ui.labels.sort": {
+    "other": "Ordenar"
+  },
+  "ui.labels.description": {
+    "other": "Descripción"
+  },
+  "ui.labels.created_at": {
+    "other": "Fecha de Creación"
+  },
+  "ui.labels.updated_at": {
+    "other": "Fecha de Actualización"
+  },
+  "ui.labels.draft": {
+    "other": "Borrador"
+  },
+  "ui.labels.published": {
+    "other": "Publicado"
+  },
+  "ui.labels.archived": {
+    "other": "Archivado"
+  },
+  "ui.status.active": {
+    "other": "Activo"
+  },
+  "ui.status.inactive": {
+    "other": "Inactivo"
+  },
+  "ui.status.enabled": {
+    "other": "Habilitado"
+  },
+  "ui.status.disabled": {
+    "other": "Deshabilitado"
+  },
+  "ui.status.pending": {
+    "other": "Pendiente"
+  },
+  "ui.status.draft": {
+    "other": "Borrador"
+  },
+  "ui.status.published": {
+    "other": "Publicado"
+  },
+  "ui.status.archived": {
+    "other": "Archivado"
+  },
+  "articles.title": {
+    "other": "Artículos"
+  },
+  "articles.create_new": {
+    "other": "Crear Nuevo Artículo"
+  },
+  "articles.edit_article": {
+    "other": "Editar Artículo"
+  },
+  "articles.view_article": {
+    "other": "Ver Artículo"
+  },
+  "articles.delete_article": {
+    "other": "Eliminar Artículo"
+  },
+  "articles.publish_article": {
+    "other": "Publicar Artículo"
+  },
+  "articles.translate": {
+    "other": "Traducir Artículo"
+  },
+  "articles.duplicate": {
+    "other": "Duplicar Artículo"
+  },
+  "articles.print": {
+    "other": "Imprimir Artículo"
+  },
+  "articles.share": {
+    "other": "Compartir Artículo"
+  },
+  "articles.bookmark": {
+    "other": "Guardar Artículo"
+  },
+  "articles.read_time": {
+    "other": "{{.Minutes}} min de lectura"
+  },
+  "articles.by_author": {
+    "other": "Por {{.Author}}"
+  },
+  "articles.views": {
+    "other": "{{.Count}} visualizaciones"
+  },
+  "articles.comments": {
+    "other": "{{.Count}} comentarios"
+  },
+  "articles.recent_articles": {
+    "other": "Artículos Recientes"
+  },
+  "articles.popular_articles": {
+    "other": "Artículos Populares"
+  },
+  "articles.related_articles": {
+    "other": "Artículos Relacionados"
+  },
+  "articles.total_articles": {
+    "other": "{{.Count}} artículos"
+  },
+  "articles.actions.bookmark": {
+    "other": "Guardar"
+  },
+  "articles.actions.share": {
+    "other": "Compartir"
+  },
+  "articles.actions.comment": {
+    "other": "Comentar"
+  },
+  "articles.actions.report": {
+    "other": "Reportar"
+  },
+  "articles.actions.translate": {
+    "other": "Traducir"
+  },
+  "admin.translations.title": {
+    "other": "Gestión de Traducciones"
+  },
+  "admin.translations.languages": {
+    "other": "Idiomas"
+  },
+  "admin.translations.add_language": {
+    "other": "Agregar Idioma"
+  },
+  "admin.translations.source_text": {
+    "other": "Texto Fuente"
+  },
+  "admin.translations.translation_status": {
+    "other": "Estado de Traducción"
+  },
+  "admin.translations.completion_rate": {
+    "other": "Tasa de Finalización"
+  },
+  "admin.translations.missing_translations": {
+    "other": "Traducciones Faltantes"
+  },
+  "admin.translations.translation_progress": {
+    "other": "Progreso de Traducción"
+  },
+  "admin.translations.machine_translated": {
+    "other": "Traducido por Máquina"
+  },
+  "admin.translations.human_reviewed": {
+    "other": "Revisado por Humano"
+  },
+  "admin.translations.review_required": {
+    "other": "Revisión Requerida"
+  },
+  "admin.translations.edit_translation": {
+    "other": "Editar Traducción"
+  },
+  "admin.translations.import_translations": {
+    "other": "Importar Traducciones"
+  },
+  "admin.translations.export_translations": {
+    "other": "Exportar Traducciones"
+  },
+  "notifications.welcome.title": {
+    "other": "Bienvenido"
+  },
+  "notifications.welcome.message": {
+    "other": "Conectado al sistema de notificaciones"
+  },
+  "notifications.system_alert.title": {
+    "other": "Alerta del Sistema"
+  },
+  "notifications.breaking_news.title": {
+    "other": "Noticias de Última Hora"
+  },
+  "notifications.breaking_news.message": {
+    "other": "Nueva noticia de última hora publicada: {{.Title}}"
+  },
+  "notifications.new_comment.title": {
+    "other": "Nuevo Comentario"
+  },
+  "notifications.new_comment.message": {
+    "other": "{{.Author}} comentó en '{{.NewsTitle}}'"
+  },
+  "notifications.user_mention.title": {
+    "other": "Mención"
+  },
+  "notifications.user_mention.message": {
+    "other": "{{.MentionedBy}} te mencionó en un comentario"
+  },
+  "notifications.new_follower.title": {
+    "other": "Nuevo Seguidor"
+  },
+  "notifications.new_follower.message": {
+    "other": "{{.Username}} comenzó a seguirte"
+  },
+  "notifications.video_uploaded.title": {
+    "other": "Video Subido"
+  },
+  "notifications.video_uploaded.message": {
+    "other": "Tu video '{{.Title}}' se ha subido exitosamente"
+  },
+  "notifications.video_processed.title": {
+    "other": "Video Procesado"
+  },
+  "notifications.video_processed.message": {
+    "other": "Tu video '{{.Title}}' ha sido procesado y está en vivo"
+  },
+  "notifications.video_vote.title": {
+    "other": "Voto de Video"
+  },
+  "notifications.video_vote.message": {
+    "other": "Tu video '{{.Title}}' recibió un {{.VoteType}}"
+  },
+  "notifications.news_updated.title": {
+    "other": "Noticia Actualizada"
+  },
+  "notifications.news_updated.message": {
+    "other": "La noticia '{{.Title}}' ha sido actualizada"
+  },
+  "notifications.category_news.title": {
+    "other": "Noticia de Categoría"
+  },
+  "notifications.category_news.message": {
+    "other": "Nueva noticia en {{.Category}}: {{.Title}}"
+  },
+  "notifications.trending_update.title": {
+    "other": "Actualización de Tendencias"
+  },
+  "notifications.trending_update.message": {
+    "other": "Las noticias de tendencia se han actualizado"
+  },
+  "notifications.live_stats.title": {
+    "other": "Estadísticas en Vivo"
+  },
+  "notifications.live_stats.message": {
+    "other": "{{.ActiveUsers}} usuarios activos, {{.PageViews}} visualizaciones de página"
+  },
+  "notifications.maintenance.title": {
+    "other": "Aviso de Mantenimiento"
+  },
+  "notifications.maintenance.message": {
+    "other": "El mantenimiento del sistema comenzará a las {{.StartTime}}"
+  },
+  "notifications.security_alert.title": {
+    "other": "Alerta de Seguridad"
+  },
+  "notifications.profile_updated.title": {
+    "other": "Perfil Actualizado"
+  },
+  "notifications.profile_updated.message": {
+    "other": "Tu perfil ha sido actualizado exitosamente"
+  },
+  "notifications.password_changed.title": {
+    "other": "Contraseña Cambiada"
+  },
+  "notifications.password_changed.message": {
+    "other": "Tu contraseña ha sido cambiada exitosamente"
+  }
+}

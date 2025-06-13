@@ -1,0 +1,214 @@
+# Binaries for programs and plugins
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+news-api
+news
+main
+api
+worker
+app
+
+# Compiled binaries directory
+/bin/
+
+# Test binary, built with `go test -c`
+*.test
+
+# Output of the go coverage tool
+*.out
+*.prof
+coverage.html
+
+# Dependency directories (remove the comment below to include it)
+vendor/
+archive/
+
+# Go workspace file
+go.work
+
+# IDE specific files
+.idea/
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+*.code-workspace
+.history/
+
+# Build outputs
+bin/
+build/
+dist/
+
+# Environment & secrets
+.env
+.env.*
+.env.backup
+!.env.example
+!.env.local
+!.env.development
+!.env.testing
+
+# Environment-specific configurations (keep development and testing, exclude production)
+environments/production/.env
+!environments/development/.env
+!environments/testing/.env
+
+# Security files
+*.pem
+*.key
+*.crt
+*.csr
+
+# macOS specific
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# Docker
+.docker/
+.dockerignore
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+dump.rdb
+
+# Prometheus & Grafana data
+prometheus/data/
+grafana/data/
+
+# OpenTelemetry data
+otel/data/
+
+# Temporary files
+tmp/*
+temp/
+*.tmp
+*~
+*.bak
+*.swp
+
+# Local configuration overrides
+config.local.yaml
+config.local.json
+
+# Build artifacts
+.cache/
+
+# Migration lockfiles
+migrations/.lock
+
+# Test results
+TEST-*.xml
+
+# Performance test reports (large files)
+reports/performance/
+reports/baseline/
+logs/performance/
+
+# Large data files
+*.json.gz
+*.csv.gz
+*performance*.json
+*baseline*.json
+*spike-traffic*.json
+*normal-traffic*.json
+*database-performance*.json
+
+# Tool binaries
+migrate-tool
+news-api
+
+# Docker binaries and images
+docker-compose.override.yml
+.docker-compose.override.yml
+*.tar
+*.tar.gz
+
+# Go compiled binaries
+/cmd/api/api
+/cmd/migrate/migrate
+/cmd/*/main
+/cmd/*/*.exe
+/cmd/*/*.test
+
+# Additional build artifacts
+*.out
+*.prof
+*.exe
+*.dll
+*.so
+*.dylib
+/debug/debug_client
+/debug/debug_server
+
+# Container volumes and data
+docker-data/
+postgres-data/
+redis-data/
+volumes/
+
+
+# backup files
+*.bak
+backups
+
+# archive
+archive
+
+# Legacy test files (use /tests/ instead)
+internal/tests/
+
+news-app/
+
+node_modules/
+
+# Development and testing files
+*.test
+*.log
+migrate-tool
+TODO.md
+.secrets
+.actrc
+
+# Build artifacts and temporary files
+coverage.html
+coverage.out
+api.log
+integration.test
+unit.test
+
+# Documentation (auto-generated)
+# Swagger/OpenAPI documentation files
+# These are auto-generated via Air and Docker workflows
+# 
+# The canonical swagger docs are maintained in cmd/api/docs/ and tracked in git
+# Files in docs/ directory are Docker-generated duplicates and should be ignored
+# to prevent conflicts and maintain single source of truth
+#
+# Documentation workflow:
+# - Air automatically generates swagger files in cmd/api/docs (tracked in git)
+# - make docs: Also generates swagger files in cmd/api/docs
+# - make docs-serve: Copies files to serve via Swagger UI container
+# - Swagger UI available at http://localhost:8091 for standalone viewing
+docs/swagger.json
+docs/swagger.yaml
+docs/docs.go
+
+
+# Scripts and automation
+scripts/
+demo/
+migrations/
+tmp

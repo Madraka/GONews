@@ -1,0 +1,174 @@
+# Docker-based Test Suite Makefile
+# This Makefile runs tests in Docker containers
+# No need to install PostgreSQL, Redis and other services on local machine
+
+.PHONY: help docker-test-setup docker-test-start docker-test-stop docker-test-clean docker-test-unit docker-test-integration docker-test-e2e docker-test-all docker-test-watch docker-test-logs
+
+# Default target
+help:
+	@echo "Docker Test Suite Commands:"
+	@echo "  docker-test-setup      - Setup Docker test environment for first time"
+	@echo "  docker-test-start      - Start test containers"
+	@echo "  docker-test-stop       - Stop test containers"
+	@echo "  docker-test-clean      - Clean test containers and volumes"
+	@echo "  docker-test-unit       - Run unit tests in Docker"
+	@echo "  docker-test-integration - Run integration tests in Docker"
+	@echo "  docker-test-e2e        - Run E2E tests in Docker"
+	@echo "  docker-test-all        - Run all tests in Docker"
+	@echo "  docker-test-watch      - Run tests in watch mode"
+	@echo "  docker-test-logs       - View test container logs"
+
+# Docker Compose file path
+DOCKER_COMPOSE_FILE = ../deployments/test/docker-compose-test.yml
+DOCKER_COMPOSE_CMD = docker-compose -f $(DOCKER_COMPOSE_FILE)
+
+# Setup test environment (first time)
+docker-test-setup:
+	@echo "🐳 Setting up Docker test environment..."
+	@echo "📋 This command will set up:"
+	@echo "   - Test PostgreSQL container (port 5434)"
+	@echo "   - Test Redis container (port 6381)"
+	@echo "   - Test API container (port 8082)"
+	@echo "   - Jaeger tracing container (port 16688)"
+	@echo ""
+	@read -p "Do you want to continue? [y/N] " confirm && [ "$$confirm" = "y" ]
+	$(DOCKER_COMPOSE_CMD) build --no-cache
+	$(DOCKER_COMPOSE_CMD) pull
+	@echo "✅ Docker test environment ready!"
+
+# Start test containers
+docker-test-start:
+	@echo "🚀 Starting test containers..."
+	$(DOCKER_COMPOSE_CMD) up -d
+	@echo "⏳ Waiting for containers to be ready..."
+	@sleep 10
+	@echo "🔍 Checking container status..."
+	$(DOCKER_COMPOSE_CMD) ps
+	@echo "✅ Test environment ready!"
+	@echo "📍 Access points:"
+	@echo "   - API: http://localhost:8082"
+	@echo "   - PostgreSQL: localhost:5434 (testuser/testpass/newsapi_test)"
+	@echo "   - Redis: localhost:6381"
+	@echo "   - Jaeger: http://localhost:16688"
+
+# Stop test containers
+docker-test-stop:
+	@echo "🛑 Test container'ları durduruluyor..."
+	$(DOCKER_COMPOSE_CMD) down
+	@echo "✅ Container'lar durduruldu!"
+
+# Clean test environment (remove containers and volumes)
+docker-test-clean:
+	@echo "🧹 Test environment temizleniyor..."
+	@echo "⚠️  Bu işlem tüm test verilerini silecek!"
+	@read -p "Emin misiniz? [y/N] " confirm && [ "$$confirm" = "y" ]
+	$(DOCKER_COMPOSE_CMD) down -v --remove-orphans
+	docker volume prune -f
+	@echo "✅ Test environment temizlendi!"
+
+# Run unit tests in Docker
+docker-test-unit:
+	@echo "🧪 Unit testler Docker'da çalıştırılıyor..."
+	@if ! $(DOCKER_COMPOSE_CMD) ps | grep -q "news_test_api.*Up"; then \
+		echo "❌ Test container'ları çalışmıyor. Önce 'make docker-test-start' çalıştırın."; \
+		exit 1; \
+	fi
+	$(DOCKER_COMPOSE_CMD) exec test_api go test -v ./tests/unit/...
+	@echo "✅ Unit testler tamamlandı!"
+
+# Run integration tests in Docker
+docker-test-integration:
+	@echo "🔗 Integration testler Docker'da çalıştırılıyor..."
+	@if ! $(DOCKER_COMPOSE_CMD) ps | grep -q "news_test_api.*Up"; then \
+		echo "❌ Test container'ları çalışmıyor. Önce 'make docker-test-start' çalıştırın."; \
+		exit 1; \
+	fi
+	$(DOCKER_COMPOSE_CMD) exec test_api go test -v ./tests/integration/...
+	@echo "✅ Integration testler tamamlandı!"
+
+# Run E2E tests in Docker
+docker-test-e2e:
+	@echo "🎯 E2E testler Docker'da çalıştırılıyor..."
+	@if ! $(DOCKER_COMPOSE_CMD) ps | grep -q "news_test_api.*Up"; then \
+		echo "❌ Test container'ları çalışmıyor. Önce 'make docker-test-start' çalıştırın."; \
+		exit 1; \
+	fi
+	$(DOCKER_COMPOSE_CMD) exec test_api go test -v ./tests/e2e/...
+	@echo "✅ E2E testler tamamlandı!"
+
+# Run all tests in Docker
+docker-test-all:
+	@echo "🚀 Tüm testler Docker'da çalıştırılıyor..."
+	@if ! $(DOCKER_COMPOSE_CMD) ps | grep -q "news_test_api.*Up"; then \
+		echo "❌ Test container'ları çalışmıyor. Önce 'make docker-test-start' çalıştırın."; \
+		exit 1; \
+	fi
+	@echo "1/3 🧪 Unit testler..."
+	$(DOCKER_COMPOSE_CMD) exec test_api go test -v ./tests/unit/...
+	@echo "2/3 🔗 Integration testler..."
+	$(DOCKER_COMPOSE_CMD) exec test_api go test -v ./tests/integration/...
+	@echo "3/3 🎯 E2E testler..."
+	$(DOCKER_COMPOSE_CMD) exec test_api go test -v ./tests/e2e/...
+	@echo "✅ Tüm testler tamamlandı!"
+
+# Run tests with coverage in Docker
+docker-test-coverage:
+	@echo "📊 Test coverage raporu Docker'da oluşturuluyor..."
+	@if ! $(DOCKER_COMPOSE_CMD) ps | grep -q "news_test_api.*Up"; then \
+		echo "❌ Test container'ları çalışmıyor. Önce 'make docker-test-start' çalıştırın."; \
+		exit 1; \
+	fi
+	$(DOCKER_COMPOSE_CMD) exec test_api go test -coverprofile=coverage.out ./tests/...
+	$(DOCKER_COMPOSE_CMD) exec test_api go tool cover -html=coverage.out -o coverage.html
+	@echo "✅ Coverage raporu oluşturuldu: coverage.html"
+
+# Watch mode for tests (requires entr or similar tool in container)
+docker-test-watch:
+	@echo "👁️  Watch mode'da testler çalıştırılıyor..."
+	@echo "💡 Dosya değişikliklerinde testler otomatik çalışacak"
+	@echo "🛑 Durdurmak için Ctrl+C"
+	@if ! $(DOCKER_COMPOSE_CMD) ps | grep -q "news_test_api.*Up"; then \
+		echo "❌ Test container'ları çalışmıyor. Önce 'make docker-test-start' çalıştırın."; \
+		exit 1; \
+	fi
+	$(DOCKER_COMPOSE_CMD) exec test_api sh -c 'while true; do go test ./tests/unit/...; sleep 5; done'
+
+# View logs from test containers
+docker-test-logs:
+	@echo "📋 Test container logları:"
+	$(DOCKER_COMPOSE_CMD) logs -f
+
+# View specific service logs
+docker-test-logs-api:
+	$(DOCKER_COMPOSE_CMD) logs -f test_api
+
+docker-test-logs-db:
+	$(DOCKER_COMPOSE_CMD) logs -f test_db
+
+docker-test-logs-redis:
+	$(DOCKER_COMPOSE_CMD) logs -f test_redis
+
+# Get shell access to test container
+docker-test-shell:
+	@echo "🐚 Test container'a shell erişimi..."
+	$(DOCKER_COMPOSE_CMD) exec test_api sh
+
+# Quick test run (start containers, run tests, stop containers)
+docker-test-quick:
+	@echo "⚡ Hızlı test çalıştırması (container'ları başlat -> test -> durdur)"
+	$(MAKE) docker-test-start
+	sleep 15
+	$(MAKE) docker-test-all || true
+	$(MAKE) docker-test-stop
+
+# Health check for test environment
+docker-test-health:
+	@echo "🏥 Test environment sağlık kontrolü..."
+	@echo "API Health Check:"
+	@curl -f http://localhost:8082/health || echo "❌ API erişilemez"
+	@echo ""
+	@echo "Database Connection:"
+	@docker exec news_test_db pg_isready -U testuser -d newsapi_test || echo "❌ Database erişilemez"
+	@echo ""
+	@echo "Redis Connection:"
+	@docker exec news_test_redis redis-cli ping || echo "❌ Redis erişilemez"

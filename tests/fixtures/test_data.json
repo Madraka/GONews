@@ -1,0 +1,169 @@
+{
+  "test_users": [
+    {
+      "username": "testuser1",
+      "email": "testuser1@example.com",
+      "password": "TestPassword123!",
+      "role": "user"
+    },
+    {
+      "username": "testadmin",
+      "email": "testadmin@example.com", 
+      "password": "AdminPassword123!",
+      "role": "admin"
+    }
+  ],
+  "test_articles": [
+    {
+      "id": 1,
+      "title": "Test Article 1",
+      "content": "This is the content of test article 1. It contains multiple sentences for testing purposes.",
+      "author": "Test Author",
+      "category": "Technology",
+      "tags": ["test", "sample", "technology"],
+      "published": true,
+      "created_at": "2024-01-01T00:00:00Z"
+    },
+    {
+      "id": 2,
+      "title": "Test Article 2", 
+      "content": "This is the content of test article 2. It has different content for variety in testing.",
+      "author": "Another Author",
+      "category": "Science",
+      "tags": ["test", "sample", "science"],
+      "published": false,
+      "created_at": "2024-01-02T00:00:00Z"
+    }
+  ],
+  "test_categories": [
+    {
+      "id": 1,
+      "name": "Technology",
+      "description": "Technology related articles",
+      "slug": "technology"
+    },
+    {
+      "id": 2,
+      "name": "Science",
+      "description": "Science related articles", 
+      "slug": "science"
+    }
+  ],
+  "test_translations": [
+    {
+      "article_id": 1,
+      "source_language": "en",
+      "target_language": "es",
+      "status": "pending",
+      "requested_at": "2024-01-01T12:00:00Z"
+    },
+    {
+      "article_id": 1,
+      "source_language": "en", 
+      "target_language": "tr",
+      "status": "completed",
+      "requested_at": "2024-01-01T10:00:00Z",
+      "completed_at": "2024-01-01T11:00:00Z",
+      "translated_content": "Bu test makalesi 1'in içeriğidir. Test amaçları için birden fazla cümle içerir."
+    }
+  ],
+  "test_ai_requests": [
+    {
+      "text": "This is a short test text for AI analysis.",
+      "expected_type": "short_text",
+      "expected_features": ["sentiment", "keywords"]
+    },
+    {
+      "text": "This is a much longer test text that should be suitable for summarization testing. It contains multiple sentences and covers various topics to ensure the AI summarization functionality works correctly. The text discusses technology, innovation, and future trends in artificial intelligence and machine learning applications.",
+      "expected_type": "long_text",
+      "expected_features": ["summary", "keywords", "sentiment", "topics"]
+    }
+  ],
+  "api_endpoints": [
+    {
+      "method": "GET",
+      "path": "/health",
+      "auth_required": false,
+      "expected_status": 200
+    },
+    {
+      "method": "GET", 
+      "path": "/api/news",
+      "auth_required": false,
+      "expected_status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/translation/stats",
+      "auth_required": false,
+      "expected_status": 200
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/login",
+      "auth_required": false,
+      "expected_status": 200,
+      "required_fields": ["username", "password"]
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/register", 
+      "auth_required": false,
+      "expected_status": 201,
+      "required_fields": ["username", "email", "password"]
+    },
+    {
+      "method": "POST",
+      "path": "/api/ai/analyze",
+      "auth_required": true,
+      "expected_status": 200,
+      "required_fields": ["text"]
+    },
+    {
+      "method": "POST",
+      "path": "/api/ai/summarize",
+      "auth_required": true, 
+      "expected_status": 200,
+      "required_fields": ["text"]
+    }
+  ],
+  "error_scenarios": [
+    {
+      "name": "invalid_json",
+      "payload": "invalid json format",
+      "expected_status": 400
+    },
+    {
+      "name": "missing_required_field",
+      "endpoint": "/api/auth/login",
+      "payload": {"username": "test"},
+      "expected_status": 400
+    },
+    {
+      "name": "unauthorized_access",
+      "endpoint": "/api/ai/analyze", 
+      "payload": {"text": "test"},
+      "auth_token": "invalid_token",
+      "expected_status": 401
+    },
+    {
+      "name": "nonexistent_endpoint",
+      "endpoint": "/api/nonexistent",
+      "expected_status": 404
+    }
+  ],
+  "performance_benchmarks": {
+    "health_endpoint": {
+      "target_response_time_ms": 50,
+      "target_requests_per_second": 1000
+    },
+    "news_endpoint": {
+      "target_response_time_ms": 200,
+      "target_requests_per_second": 500
+    },
+    "ai_analyze_endpoint": {
+      "target_response_time_ms": 2000,
+      "target_requests_per_second": 10
+    }
+  }
+}

@@ -26,6 +26,15 @@ jobs:
         uses: actions/setup-go@v4
         with:
           go-version: '1.24.3'
+          check-latest: true
+
+      - name: Verify Go installation
+        run: |
+          go version
+          go env GOVERSION
+          go env GOROOT
+          go env GOPATH
+          go env GOMOD
 
       - name: Cache Go modules
         uses: actions/cache@v3
@@ -38,7 +47,9 @@ jobs:
             ${{ runner.os }}-go-
 
       - name: Download dependencies
-        run: go mod download
+        run: |
+          go mod download
+          go mod verify
 
       - name: Get version info
         id: version
@@ -51,12 +62,21 @@ jobs:
         run: mkdir -p bin
 
       - name: Build binaries
+        env:
+          CGO_ENABLED: 0
+          GOOS: linux
+          GOARCH: amd64
         run: |
           echo "🔨 Building with version info..."
+          echo "Go version: $(go version)"
+          echo "Working directory: $(pwd)"
+          echo "Go env GOMOD: $(go env GOMOD)"
+          ls -la cmd/api/
           go build \
-            -ldflags "-X news/internal/version.Version=${{ steps.version.outputs.VERSION }} -X news/internal/version.BuildTime=${{ steps.version.outputs.BUILD_TIME }} -X news/internal/version.GitCommit=${{ steps.version.outputs.GIT_COMMIT }}" \
+            -v \
+            -ldflags "-w -s -X news/internal/version.Version=${{ steps.version.outputs.VERSION }} -X news/internal/version.BuildTime=${{ steps.version.outputs.BUILD_TIME }} -X news/internal/version.GitCommit=${{ steps.version.outputs.GIT_COMMIT }}" \
             -o bin/news-api \
-            cmd/api/main.go
+            ./cmd/api
 
       - name: Run tests
         run: |

@@ -7,7 +7,7 @@
 news-api
 news
 main
-worker
+# worker
 app
 
 # Note: 'api' removed from here to allow cmd/api/ directory

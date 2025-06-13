@@ -1,0 +1,305 @@
+# Production News Worker Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: news-worker
+  namespace: production
+  labels:
+    app: news-worker
+    component: worker
+    version: v1
+    environment: production
+spec:
+  replicas: 1
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
+      maxSurge: 2
+  selector:
+    matchLabels:
+      app: news-worker
+  template:
+    metadata:
+      labels:
+        app: news-worker
+        component: worker
+        version: v1
+        environment: production
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9091"
+        prometheus.io/path: "/metrics"
+    spec:
+      containers:
+      - name: worker
+        image: news/worker:production
+        ports:
+        - containerPort: 9091
+          name: metrics
+        env:
+        # Application configuration
+        - name: APP_ENV
+          value: "production"
+        - name: LOG_LEVEL
+          value: "info"
+        - name: LOG_FORMAT
+          value: "json"
+        - name: WORKER_MODE
+          value: "production"
+        
+        # Go runtime optimizations
+        - name: GOMAXPROCS
+          value: "0"
+        - name: GOMEMLIMIT
+          value: "6GiB"
+        - name: GOGC
+          value: "100"
+        - name: GODEBUG
+          value: "gctrace=0,madvdontneed=1"
+        
+        # Database configuration
+        - name: DB_HOST
+          value: "postgres-service"
+        - name: DB_PORT
+          value: "5432"
+        - name: DB_NAME
+          value: "newsdb_prod"
+        - name: DB_USER
+          valueFrom:
+            secretKeyRef:
+              name: postgres-secret
+              key: username
+        - name: DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: postgres-secret
+              key: password
+        - name: DB_SSLMODE
+          value: "disable"
+        - name: DB_MAX_IDLE_CONNS
+          value: "10"
+        - name: DB_MAX_OPEN_CONNS
+          value: "50"
+        - name: DB_CONN_MAX_LIFETIME
+          value: "1h"
+        - name: DB_CONN_MAX_IDLE_TIME
+          value: "30m"
+        - name: DATABASE_URL
+          value: "postgres://postgres:prod_news_db_password_2024@postgres-service:5432/newsdb_prod?sslmode=disable"
+        
+        # Redis configuration
+        - name: REDIS_HOST
+          value: "redis-service"
+        - name: REDIS_PORT
+          value: "6379"
+        - name: REDIS_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: redis-secret
+              key: password
+        - name: REDIS_DB
+          value: "1"
+        
+        # Queue configuration - optimized for high throughput
+        - name: QUEUE_ENABLED
+          value: "true"
+        - name: QUEUE_TRANSLATION_WORKERS
+          value: "8"
+        - name: QUEUE_VIDEO_WORKERS
+          value: "5"
+        - name: QUEUE_AGENT_WORKERS
+          value: "8"
+        - name: QUEUE_GENERAL_WORKERS
+          value: "5"
+        - name: QUEUE_CRAWL_WORKERS
+          value: "10"
+        - name: QUEUE_IMAGE_WORKERS
+          value: "4"
+        - name: QUEUE_NOTIFICATION_WORKERS
+          value: "3"
+        - name: QUEUE_MAX_RETRIES
+          value: "5"
+        - name: QUEUE_RETRY_DELAY
+          value: "300"
+        - name: QUEUE_JOB_TIMEOUT
+          value: "1800"
+        - name: QUEUE_BATCH_SIZE
+          value: "10"
+        - name: QUEUE_PREFETCH_COUNT
+          value: "20"
+        - name: QUEUE_DEAD_LETTER_ENABLED
+          value: "true"
+        - name: QUEUE_DEAD_LETTER_TTL
+          value: "604800"  # 7 days
+        
+        # Performance optimizations
+        - name: WORKER_CONCURRENCY
+          value: "50"
+        - name: WORKER_BATCH_PROCESSING
+          value: "true"
+        - name: WORKER_HEALTH_CHECK_INTERVAL
+          value: "30s"
+        - name: WORKER_MAX_MEMORY_USAGE
+          value: "5GB"
+        - name: WORKER_GC_PERCENT
+          value: "100"
+        
+        # External service configurations
+        - name: HTTP_CLIENT_TIMEOUT
+          value: "30s"
+        - name: HTTP_CLIENT_MAX_IDLE_CONNS
+          value: "100"
+        - name: HTTP_CLIENT_MAX_IDLE_CONNS_PER_HOST
+          value: "20"
+        - name: HTTP_CLIENT_IDLE_CONN_TIMEOUT
+          value: "90s"
+        
+        # Monitoring and metrics
+        - name: METRICS_ENABLED
+          value: "true"
+        - name: METRICS_PORT
+          value: "9091"
+        - name: METRICS_PATH
+          value: "/metrics"
+        - name: HEALTH_CHECK_ENABLED
+          value: "true"
+        
+        # Feature flags
+        - name: ENABLE_NEWS_CRAWLING
+          value: "true"
+        - name: ENABLE_IMAGE_PROCESSING
+          value: "true"
+        - name: ENABLE_VIDEO_PROCESSING
+          value: "true"
+        - name: ENABLE_TRANSLATION
+          value: "true"
+        - name: ENABLE_SENTIMENT_ANALYSIS
+          value: "true"
+        - name: ENABLE_NOTIFICATIONS
+          value: "true"
+        
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "200m"
+          limits:
+            memory: "2Gi"
+            cpu: "1000m"
+        
+        livenessProbe:
+          exec:
+            command:
+            - /bin/sh
+            - -c
+            - "pgrep -f worker || exit 1"
+          initialDelaySeconds: 60
+          periodSeconds: 30
+          timeoutSeconds: 10
+          failureThreshold: 3
+          successThreshold: 1
+        
+        readinessProbe:
+          exec:
+            command:
+            - /bin/sh
+            - -c
+            - "pgrep -f worker && nc -z redis-service 6379 && nc -z postgres-service 5432"
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 2
+          successThreshold: 1
+        
+        securityContext:
+          runAsNonRoot: true
+          runAsUser: 1001
+          runAsGroup: 1001
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: false
+          capabilities:
+            drop:
+            - ALL
+      
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - news-worker
+              topologyKey: kubernetes.io/hostname
+      
+      tolerations:
+      - key: "high-cpu"
+        operator: "Equal"
+        value: "true"
+        effect: "NoSchedule"
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: news-worker-service
+  namespace: production
+  labels:
+    app: news-worker
+    component: worker
+spec:
+  selector:
+    app: news-worker
+  ports:
+  - port: 9091
+    targetPort: 9091
+    protocol: TCP
+    name: metrics
+  type: ClusterIP
+
+---
+# Horizontal Pod Autoscaler for Worker
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: news-worker-hpa
+  namespace: production
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: news-worker
+  minReplicas: 1
+  maxReplicas: 3
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 75
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 85
+  behavior:
+    scaleDown:
+      stabilizationWindowSeconds: 300
+      policies:
+      - type: Percent
+        value: 15
+        periodSeconds: 60
+    scaleUp:
+      stabilizationWindowSeconds: 60
+      policies:
+      - type: Percent
+        value: 25
+        periodSeconds: 60
+      - type: Pods
+        value: 3
+        periodSeconds: 60
+      selectPolicy: Max

@@ -1,0 +1,91 @@
+receivers:
+  otlp:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:4317
+      http:
+        endpoint: 0.0.0.0:4318
+
+  # Prometheus receiver to collect metrics from the application
+  prometheus:
+    config:
+      scrape_configs:
+        - job_name: 'news-api'
+          static_configs:
+            - targets: ['news-api:8080']
+          metrics_path: '/metrics'
+          scrape_interval: 10s
+
+processors:
+  # Batch processor for efficient data transmission
+  batch:
+    timeout: 1s
+    send_batch_size: 1024
+    send_batch_max_size: 2048
+
+  # Memory limiter to prevent OOM
+  memory_limiter:
+    limit_mib: 256
+
+  # Resource processor to add/modify resource attributes
+  resource:
+    attributes:
+      - key: service.name
+        value: news-api
+        action: upsert
+      - key: service.version
+        value: 1.0.0
+        action: upsert
+      - key: deployment.environment
+        value: production
+        action: upsert
+
+  # Attributes processor for span manipulation
+  attributes:
+    actions:
+      - key: sensitive_data
+        action: delete
+      - key: user.id
+        action: hash
+
+exporters:
+  # OTLP exporter for traces to Jaeger
+  otlp/jaeger:
+    endpoint: jaeger:4317
+    tls:
+      insecure: true
+
+  # Prometheus exporter for metrics
+  prometheus:
+    endpoint: "0.0.0.0:8889"
+    const_labels:
+      service: news-api
+
+  # Logging exporter for debugging
+  logging:
+    loglevel: debug
+
+service:
+  pipelines:
+    traces:
+      receivers: [otlp]
+      processors: [memory_limiter, resource, attributes, batch]
+      exporters: [otlp/jaeger, logging]
+
+    metrics:
+      receivers: [otlp, prometheus]
+      processors: [memory_limiter, resource, batch]
+      exporters: [prometheus, logging]
+
+    logs:
+      receivers: [otlp]
+      processors: [memory_limiter, resource, batch]
+      exporters: [logging]
+
+  extensions: []
+
+  telemetry:
+    logs:
+      level: "debug"
+    metrics:
+      address: 0.0.0.0:8888

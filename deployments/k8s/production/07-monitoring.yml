@@ -1,0 +1,230 @@
+# Production Monitoring Stack Configuration
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: monitoring
+  labels:
+    name: monitoring
+
+---
+# ServiceMonitor for Prometheus to scrape API metrics
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: news-api-metrics
+  namespace: monitoring
+  labels:
+    app: news-api
+    component: monitoring
+spec:
+  selector:
+    matchLabels:
+      app: news-api
+  namespaceSelector:
+    matchNames:
+    - production
+  endpoints:
+  - port: metrics
+    path: /metrics
+    interval: 30s
+    scrapeTimeout: 10s
+
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: news-worker-metrics
+  namespace: monitoring
+  labels:
+    app: news-worker
+    component: monitoring
+spec:
+  selector:
+    matchLabels:
+      app: news-worker
+  namespaceSelector:
+    matchNames:
+    - production
+  endpoints:
+  - port: metrics
+    path: /metrics
+    interval: 30s
+    scrapeTimeout: 10s
+
+---
+# Prometheus Rules for Alerting
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: news-api-alerts
+  namespace: monitoring
+  labels:
+    app: news-api
+    component: monitoring
+spec:
+  groups:
+  - name: news-api.rules
+    rules:
+    - alert: NewsAPIHighErrorRate
+      expr: rate(http_requests_total{status=~"5.."}[5m]) > 0.1
+      for: 5m
+      labels:
+        severity: warning
+      annotations:
+        summary: "High error rate on News API"
+        description: "Error rate is {{ $value }} errors per second"
+    
+    - alert: NewsAPIHighLatency
+      expr: histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[5m])) > 1
+      for: 5m
+      labels:
+        severity: warning
+      annotations:
+        summary: "High latency on News API"
+        description: "95th percentile latency is {{ $value }}s"
+    
+    - alert: NewsAPIDown
+      expr: up{job="news-api"} == 0
+      for: 1m
+      labels:
+        severity: critical
+      annotations:
+        summary: "News API is down"
+        description: "News API has been down for more than 1 minute"
+    
+    - alert: NewsWorkerDown
+      expr: up{job="news-worker"} == 0
+      for: 2m
+      labels:
+        severity: warning
+      annotations:
+        summary: "News Worker is down"
+        description: "News Worker has been down for more than 2 minutes"
+    
+    - alert: DatabaseConnectionsHigh
+      expr: pg_stat_activity_count > 150
+      for: 5m
+      labels:
+        severity: warning
+      annotations:
+        summary: "High number of database connections"
+        description: "Current connections: {{ $value }}"
+    
+    - alert: RedisMemoryHigh
+      expr: redis_memory_used_bytes / redis_memory_max_bytes > 0.8
+      for: 5m
+      labels:
+        severity: warning
+      annotations:
+        summary: "Redis memory usage is high"
+        description: "Redis memory usage is {{ $value | humanizePercentage }}"
+
+---
+# PodMonitor for additional pod-level metrics
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+  name: news-pods
+  namespace: monitoring
+  labels:
+    app: news
+    component: monitoring
+spec:
+  selector:
+    matchLabels:
+      environment: production
+  namespaceSelector:
+    matchNames:
+    - production
+  podMetricsEndpoints:
+  - port: metrics
+    path: /metrics
+    interval: 30s
+
+---
+# Grafana Dashboard ConfigMap
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: news-dashboard
+  namespace: monitoring
+  labels:
+    grafana_dashboard: "1"
+data:
+  news-api-dashboard.json: |
+    {
+      "dashboard": {
+        "id": null,
+        "title": "News API Production Dashboard",
+        "tags": ["news", "api", "production"],
+        "timezone": "browser",
+        "refresh": "30s",
+        "time": {
+          "from": "now-1h",
+          "to": "now"
+        },
+        "panels": [
+          {
+            "id": 1,
+            "title": "Request Rate",
+            "type": "graph",
+            "targets": [
+              {
+                "expr": "rate(http_requests_total[5m])",
+                "legendFormat": "{{method}} {{status}}"
+              }
+            ]
+          },
+          {
+            "id": 2,
+            "title": "Response Time",
+            "type": "graph",
+            "targets": [
+              {
+                "expr": "histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[5m]))",
+                "legendFormat": "95th percentile"
+              },
+              {
+                "expr": "histogram_quantile(0.50, rate(http_request_duration_seconds_bucket[5m]))",
+                "legendFormat": "50th percentile"
+              }
+            ]
+          },
+          {
+            "id": 3,
+            "title": "Active Connections",
+            "type": "singlestat",
+            "targets": [
+              {
+                "expr": "pg_stat_activity_count",
+                "legendFormat": "Database Connections"
+              }
+            ]
+          },
+          {
+            "id": 4,
+            "title": "Memory Usage",
+            "type": "graph",
+            "targets": [
+              {
+                "expr": "container_memory_usage_bytes{pod=~\"news-.*\"}",
+                "legendFormat": "{{pod}}"
+              }
+            ]
+          },
+          {
+            "id": 5,
+            "title": "CPU Usage",
+            "type": "graph",
+            "targets": [
+              {
+                "expr": "rate(container_cpu_usage_seconds_total{pod=~\"news-.*\"}[5m])",
+                "legendFormat": "{{pod}}"
+              }
+            ]
+          }
+        ],
+        "schemaVersion": 16,
+        "version": 1
+      }
+    }

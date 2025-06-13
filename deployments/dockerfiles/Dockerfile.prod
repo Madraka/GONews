@@ -1,0 +1,75 @@
+# =================================
+# Production Multi-Stage Build (Fast & Optimized)
+# =================================
+
+# Stage 1: Build environment
+FROM golang:1.24-alpine AS builder
+
+# Set Go environment variables for better network handling
+ENV GOPROXY=direct
+ENV GOSUMDB=off
+ENV GO111MODULE=on
+
+# Install build dependencies including swag for Swagger docs
+RUN apk add --no-cache git ca-certificates tzdata
+
+# Install swag CLI with retry mechanism and network settings
+RUN for i in 1 2 3; do \
+        go install github.com/swaggo/swag/cmd/swag@latest && break || \
+        (echo "Attempt $i failed, retrying..." && sleep 5); \
+    done
+
+# Set working directory
+WORKDIR /app
+
+# Copy go mod files first for better caching
+COPY go.mod go.sum ./
+
+# Download dependencies with retry mechanism
+RUN for i in 1 2 3; do \
+        go mod download && break || \
+        (echo "go mod download attempt $i failed, retrying..." && sleep 10); \
+    done
+
+# Copy source code
+COPY . .
+
+# Generate Swagger documentation
+RUN swag init -g cmd/api/main.go -o cmd/api/docs
+
+# Build for production with optimizations
+RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -ldflags '-w -s' -o news-api ./cmd/api
+
+# Stage 2: Minimal production image
+FROM alpine:3.19
+
+# Install minimal runtime dependencies
+RUN apk add --no-cache ca-certificates tzdata curl
+
+# Create non-root user
+RUN addgroup -g 1001 -S appgroup && \
+    adduser -u 1001 -S appuser -G appgroup
+
+# Create necessary directories
+RUN mkdir -p /app && chown -R appuser:appgroup /app
+
+# Set working directory
+WORKDIR /app
+
+# Copy binary and required files
+COPY --from=builder --chown=appuser:appgroup /app/news-api /app/news-api
+COPY --from=builder --chown=appuser:appgroup /app/locales /app/locales
+COPY --from=builder --chown=appuser:appgroup /app/cmd/api/docs /app/cmd/api/docs
+
+# Switch to non-root user
+USER appuser
+
+# Expose port
+EXPOSE 8080
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=5s --start-period=30s --retries=3 \
+    CMD curl -f http://localhost:8080/health || exit 1
+
+# Run the binary
+ENTRYPOINT ["/app/news-api"]

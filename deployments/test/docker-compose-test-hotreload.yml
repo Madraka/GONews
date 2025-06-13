@@ -1,0 +1,125 @@
+services:
+  test_api:
+    build:
+      context: ../..
+      dockerfile: deployments/dockerfiles/Dockerfile.dev  # Dev Dockerfile kullan (Air ile)
+    container_name: news_test_api_hot
+    ports:
+      - "8082:8082"  # Test port'u koru
+    env_file:
+      - .env.test    # Test environment'ı kullan
+    volumes:
+      # Mount source code for live reloading
+      - ../../:/app
+      # Exclude vendor and other build artifacts from host
+      - /app/vendor
+      - /app/bin
+      - /app/.git
+    depends_on:
+      - test_db
+      - test_redis
+      - test_jaeger
+      - test_elasticsearch
+    networks:
+      - news_test_network
+    restart: unless-stopped
+    # Air hot reload kullan ama test environment ile
+    command: ["air", "-c", ".air.test.toml"]
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:8082/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  test_db:
+    image: postgres:15-alpine
+    container_name: news_test_db
+    ports:
+      - "5434:5432"
+    environment:
+      - POSTGRES_USER=testuser
+      - POSTGRES_PASSWORD=testpass
+      - POSTGRES_DB=newsapi_test
+    volumes:
+      - news_test_db_data:/var/lib/postgresql/data
+    networks:
+      - news_test_network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U testuser -d newsapi_test"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  test_redis:
+    image: redis:7-alpine
+    container_name: news_test_redis
+    ports:
+      - "6381:6379"
+    volumes:
+      - news_test_redis_data:/data
+    networks:
+      - news_test_network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  test_jaeger:
+    image: jaegertracing/all-in-one:latest
+    container_name: news_test_jaeger
+    ports:
+      - "16688:16686"  # UI
+      - "14270:14268"  # HTTP collector
+    environment:
+      - COLLECTOR_OTLP_ENABLED=true
+    networks:
+      - news_test_network
+    restart: unless-stopped
+
+  test_elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.11.0
+    container_name: news_test_elasticsearch
+    ports:
+      - "9202:9200"
+      - "9302:9300"
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    volumes:
+      - news_test_elasticsearch_data:/usr/share/elasticsearch/data
+    networks:
+      - news_test_network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:9200/_cluster/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+
+  test_kibana:
+    image: docker.elastic.co/kibana/kibana:8.11.0
+    container_name: news_test_kibana
+    ports:
+      - "5603:5601"
+    environment:
+      - ELASTICSEARCH_HOSTS=http://test_elasticsearch:9200
+      - SERVER_NAME=test_kibana
+    depends_on:
+      - test_elasticsearch
+    networks:
+      - news_test_network
+    restart: unless-stopped
+
+networks:
+  news_test_network:
+    driver: bridge
+
+volumes:
+  news_test_db_data:
+  news_test_redis_data:
+  news_test_elasticsearch_data:

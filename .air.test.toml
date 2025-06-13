@@ -1,0 +1,78 @@
+# .air.test.toml
+# Optimized Air config for test environment
+
+root = "."
+testdata_dir = "testdata"
+tmp_dir = "tmp"
+
+[build]
+  # Pre-build commands - Generate Swagger docs first
+  pre_cmd = ["swag init -g cmd/api/main.go -o docs"]
+  # Build command optimized for testing
+  cmd = "go build -mod=readonly -ldflags='-w -s' -o ./tmp/main ./cmd/api/main.go"
+  # Post-build commands
+  post_cmd = []
+  # Binary location
+  bin = "tmp/main"
+  # Full binary command with test environment
+  full_bin = "APP_ENV=test APP_USER=air ./tmp/main"
+  # Watch these file extensions
+  include_ext = ["go", "json", "env"]
+  # Exclude directories (optimized for performance)
+  exclude_dir = [
+    "assets", "tmp", "vendor", "testdata", "node_modules", ".git", 
+    "deployments", "kubernetes", "archive", "bin", ".vscode",
+    "logs", "uploads", "scripts", "migrations"
+  ]
+  # Include specific directories only
+  include_dir = ["cmd", "internal", "pkg"]
+  # Include specific files
+  include_file = []
+  # Exclude files
+  exclude_file = []
+  # Exclude test files and specific patterns
+  exclude_regex = ["_test\\.go$", ".*\\.tmp$", ".*\\.log$"]
+  # Don't trigger rebuild for unchanged files
+  exclude_unchanged = true
+  # Don't follow symlinks to avoid infinite loops
+  follow_symlink = false
+  # Error log location
+  log = "errors.log"
+  # Use fsnotify instead of polling
+  poll = false
+  # Shorter delay for faster testing
+  delay = 500 # ms
+  # Stop on build errors
+  stop_on_error = true
+  # Send interrupt signal before killing
+  send_interrupt = true
+  # Delay before killing process
+  kill_delay = "1s"
+  # Rerun after successful build
+  rerun = true
+  # Delay after rerun to stabilize
+  rerun_delay = 500
+  # No additional arguments
+  args_bin = []
+
+[log]
+  # Show timestamps
+  time = true
+  # Show only main logs to reduce noise
+  main_only = true
+
+[color]
+  main = "blue"
+  watcher = "cyan"
+  build = "yellow"
+  runner = "green"
+
+[misc]
+  # Clean tmp directory on exit
+  clean_on_exit = true
+
+[screen]
+  # Clear screen on startup
+  clear_on_startup = true
+  # Keep scroll history
+  keep_scroll = false

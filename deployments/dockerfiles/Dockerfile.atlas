@@ -1,0 +1,17 @@
+# Atlas Migration Container
+# This container is used for running Atlas migrations
+FROM arigaio/atlas:latest
+
+# Copy Atlas configuration
+COPY atlas.hcl /app/atlas.hcl
+COPY migrations/ /app/migrations/
+COPY schema/ /app/schema/
+
+# Set working directory
+WORKDIR /app
+
+# Keep the original Atlas entrypoint but set default env
+ENV ATLAS_ENV=dev
+
+# Use the original Atlas entrypoint
+# No custom ENTRYPOINT or CMD needed - the base image handles this

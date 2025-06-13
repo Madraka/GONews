@@ -1,0 +1,38 @@
+# Optimized Development Dockerfile for ARM64 Architecture
+FROM --platform=linux/arm64 golang:1.24-alpine AS base
+
+# Install essential tools, Air, and Swag in a single layer
+RUN apk add --no-cache ca-certificates tzdata git curl && \
+    go install github.com/air-verse/air@latest && \
+    go install github.com/swaggo/swag/cmd/swag@latest
+
+# Set working directory
+WORKDIR /app
+
+# Set optimized environment variables
+ENV TZ=UTC \
+    CGO_ENABLED=0 \
+    GO111MODULE=on \
+    GOOS=linux \
+    GOARCH=arm64 \
+    PATH=$PATH:/go/bin
+
+# Copy dependency files first for better caching
+COPY go.mod go.sum ./
+
+# Download dependencies with optimized flags
+RUN go mod download && go mod verify
+
+# Create necessary directories
+RUN mkdir -p /app/uploads /app/tmp /app/logs && \
+    chmod -R 755 /app/uploads /app/tmp /app/logs
+
+# Expose the application port
+EXPOSE 8081
+
+# Health check for the application
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
+    CMD curl -f http://localhost:8081/health || exit 1
+
+# Use optimized Air config for development
+CMD ["air", "-c", ".air.dev.toml"]

@@ -1,0 +1,97 @@
+# .golangci.yml - News API Go Linter Configuration
+# Production-ready linter configuration for News API project
+# Configured for comprehensive code quality checks
+
+run:
+  timeout: 10m
+  tests: true
+  issues-exit-code: 1
+  skip-dirs:
+    - vendor
+    - bin 
+    - tmp
+    - uploads
+    - backups
+
+linters:
+  enable:
+    # Critical error handling
+    - errcheck      # Error return value checks (critical for production)
+    - staticcheck   # Static analysis for bugs and performance
+    - govet         # Go vet analysis
+    
+    # Code quality
+    - ineffassign   # Ineffective assignments
+    - unused        # Unused code detection
+    - gosec         # Security vulnerability analysis
+    - misspell      # Spelling mistakes in comments
+    - unconvert     # Unnecessary type conversions
+    - unparam       # Unused function parameters
+    
+    # Code complexity and maintainability
+    - gocyclo       # Cyclomatic complexity
+    - funlen        # Function length limits
+    - lll           # Line length limits
+    - dupl          # Code duplication detection
+
+linters-settings:
+  errcheck:
+    check-type-assertions: true
+    check-blank: true
+    # Exclude test utility functions that are acceptable to ignore
+    exclude-functions:
+      - (testing.T).Log
+      - (testing.T).Logf
+      - (testing.T).Error
+      - (testing.T).Errorf
+      - (testing.T).Skip
+      - (testing.T).Skipf
+      - fmt.Print
+      - fmt.Printf
+      - fmt.Println
+      
+  govet:
+    check-lost-cancel: true
+    check-unreachable: true
+    check-assign: true
+    
+  gocyclo:
+    min-complexity: 15  # Reasonable complexity threshold
+    
+  funlen:
+    lines: 100         # Maximum function length
+    statements: 50     # Maximum statements per function
+    
+  lll:
+    line-length: 120   # Modern standard line length
+    
+  dupl:
+    threshold: 100     # Minimum tokens for duplication detection
+    
+  gosec:
+    # Security configuration
+    excludes:
+      - G104  # Audit errors not checked (handled by errcheck)
+      - G204  # Subprocess launched with variable (needed in tests)
+      - G301  # Poor file permissions (acceptable in dev environment)
+      - G302  # Poor file permissions (acceptable in dev environment)
+
+issues:
+  max-issues-per-linter: 50
+  max-same-issues: 10
+  
+  # Exclude patterns for acceptable issues
+  exclude:
+    # Test files - allow some flexibility
+    - "Error return value of .*(Close|Log|Print).*is not checked"
+    # Deprecated function warnings (being addressed gradually)
+    - "SA1019:"
+    # Context usage patterns (project-specific decisions)
+    - "should not use basic type.*as key in context.WithValue"
+    # Comment formatting (not critical)
+    - "error strings should not be capitalized"
+    - "should have a package comment"
+
+# Output configuration
+output:
+  format: colored-line-number

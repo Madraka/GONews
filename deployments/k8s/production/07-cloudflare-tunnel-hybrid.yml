@@ -1,0 +1,164 @@
+---
+# Cloudflare Tunnel Hybrid Configuration
+# This version uses both local config and dashboard configuration
+# Use this if you want some rules hardcoded and others dynamic
+
+# Cloudflare Tunnel Secret (Add your token here)
+apiVersion: v1
+kind: Secret
+metadata:
+  name: cloudflare-tunnel-token
+  namespace: production
+type: Opaque
+data:
+  # Base64 encoded tunnel token - add after running: cloudflared tunnel create news-api
+  token: ""
+
+---
+# Cloudflare Tunnel ConfigMap (Hybrid - Local + Dashboard)
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cloudflare-tunnel-config
+  namespace: production
+data:
+  config.yaml: |
+    tunnel: news-api
+    credentials-file: /etc/cloudflared/token
+    metrics: 0.0.0.0:2000
+    no-autoupdate: true
+    
+    # Minimal ingress rules - additional rules configured via dashboard
+    # Configure additional rules at: https://one.dash.cloudflare.com/networks/tunnels
+    ingress:
+      # Core API endpoint (hardcoded for stability)
+      - hostname: api.news.madraka.dev
+        service: http://news-api-service:8080
+        originRequest:
+          httpHostHeader: api.news.production
+          
+      # Catch-all rule (must be last rule)
+      - service: http_status:404
+
+---
+# Cloudflare Tunnel Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cloudflare-tunnel
+  namespace: production
+  labels:
+    app: cloudflare-tunnel
+    version: hybrid
+spec:
+  replicas: 2  # 2 replicas for HA
+  selector:
+    matchLabels:
+      app: cloudflare-tunnel
+  template:
+    metadata:
+      labels:
+        app: cloudflare-tunnel
+        version: hybrid
+    spec:
+      containers:
+      - name: cloudflared
+        image: cloudflare/cloudflared:latest
+        args:
+          - tunnel
+          - --config
+          - /etc/cloudflared/config/config.yaml
+          - run
+        ports:
+        - name: metrics
+          containerPort: 2000
+          protocol: TCP
+        volumeMounts:
+        - name: config
+          mountPath: /etc/cloudflared/config
+          readOnly: true
+        - name: tunnel-token
+          mountPath: /etc/cloudflared
+          readOnly: true
+        resources:
+          requests:
+            cpu: 100m
+            memory: 128Mi
+          limits:
+            cpu: 500m
+            memory: 512Mi
+        livenessProbe:
+          httpGet:
+            path: /ready
+            port: metrics
+          initialDelaySeconds: 30
+          periodSeconds: 30
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: metrics
+          initialDelaySeconds: 10
+          periodSeconds: 10
+        env:
+        - name: TUNNEL_TOKEN_FILE
+          value: /etc/cloudflared/token
+      volumes:
+      - name: config
+        configMap:
+          name: cloudflare-tunnel-config
+      - name: tunnel-token
+        secret:
+          secretName: cloudflare-tunnel-token
+          items:
+          - key: token
+            path: token
+
+---
+# Cloudflare Tunnel Service (For metrics)
+apiVersion: v1
+kind: Service
+metadata:
+  name: cloudflare-tunnel-metrics
+  namespace: production
+  labels:
+    app: cloudflare-tunnel
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "2000"
+    prometheus.io/path: "/metrics"
+spec:
+  ports:
+  - name: metrics
+    port: 2000
+    targetPort: 2000
+    protocol: TCP
+  selector:
+    app: cloudflare-tunnel
+
+---
+# Horizontal Pod Autoscaler
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: cloudflare-tunnel-hpa
+  namespace: production
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: cloudflare-tunnel
+  minReplicas: 2
+  maxReplicas: 5
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 80

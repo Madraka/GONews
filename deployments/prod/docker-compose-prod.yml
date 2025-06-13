@@ -1,0 +1,434 @@
+# =================================
+# Production Environment - Optimized Configuration
+# =================================
+
+services:
+  prod_api:
+    # Use build for development/code changes, image for production deployments
+    build:
+      context: ../../
+      dockerfile: deployments/dockerfiles/Dockerfile.prod
+    image: news-api:prod-latest
+    container_name: news_prod_api
+    ports:
+      - "8080:8080"
+    env_file:
+      - .env.prod
+    environment:
+      - GIN_MODE=release
+      - LOG_LEVEL=info
+    depends_on:
+      prod_db:
+        condition: service_healthy
+      prod_redis:
+        condition: service_healthy
+      prod_elasticsearch:
+        condition: service_healthy
+    volumes:
+      # Locales for internationalization
+      - ../../locales:/app/locales:ro
+    networks:
+      - news_prod_network
+    restart: unless-stopped
+    # Production-grade health checks with shorter intervals
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    # Optimized resource limits for production
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: '1.0'
+        reservations:
+          memory: 256M
+          cpus: '0.25'
+    # Security and performance settings
+    security_opt:
+      - no-new-privileges:true
+    read_only: false  # Need write access for temp files
+    tmpfs:
+      - /tmp:rw,size=100M,mode=1777
+    ulimits:
+      nproc: 65535
+      nofile:
+        soft: 65535
+        hard: 65535
+
+  prod_db:
+    image: postgres:15.8-alpine
+    container_name: news_prod_db
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=produser
+      - POSTGRES_PASSWORD=prodpass123!
+      - POSTGRES_DB=newsdb_prod
+      - POSTGRES_HOST_AUTH_METHOD=md5
+      - POSTGRES_INITDB_ARGS=--encoding=UTF-8 --lc-collate=en_US.UTF-8 --lc-ctype=en_US.UTF-8
+      # Performance tuning for production
+      - POSTGRES_SHARED_PRELOAD_LIBRARIES=pg_stat_statements
+    volumes:
+      - news_prod_db_data:/var/lib/postgresql/data
+      - ../../migrations:/docker-entrypoint-initdb.d:ro
+      - ../../scripts/seeds:/docker-entrypoint-initdb.d/seeds:ro
+      # Production PostgreSQL configuration
+      - ./postgresql.conf:/etc/postgresql/postgresql.conf:ro
+    command: ["postgres", "-c", "config_file=/etc/postgresql/postgresql.conf"]
+    networks:
+      - news_prod_network
+    restart: unless-stopped
+    # Optimized health checks for production
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U produser -d newsdb_prod -h localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 40s
+    # Production database resource limits
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+          cpus: '2.0'
+        reservations:
+          memory: 512M
+          cpus: '0.5'
+    # Security hardening
+    security_opt:
+      - no-new-privileges:true
+    # Better logging for production
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  prod_redis:
+    image: redis:7.2-alpine
+    container_name: news_prod_redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - news_prod_redis_data:/data
+      # Redis production config
+      - ./redis.conf:/usr/local/etc/redis/redis.conf:ro
+    command: ["redis-server", "/usr/local/etc/redis/redis.conf"]
+    networks:
+      - news_prod_network
+    restart: unless-stopped
+    # Optimized health checks
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+      start_period: 20s
+    # Production Redis resource limits
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '0.5'
+        reservations:
+          memory: 128M
+          cpus: '0.1'
+    # Security and performance
+    security_opt:
+      - no-new-privileges:true
+    ulimits:
+      memlock: -1
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  prod_jaeger:
+    image: jaegertracing/all-in-one:1.60.0
+    container_name: news_prod_jaeger
+    ports:
+      - "16686:16686"
+      - "14268:14268"
+      - "4317:4317"   # OTLP gRPC
+      - "4318:4318"   # OTLP HTTP
+    environment:
+      - COLLECTOR_OTLP_ENABLED=true
+      - SPAN_STORAGE_TYPE=badger
+      - BADGER_EPHEMERAL=false
+      - BADGER_DIRECTORY_VALUE=/badger/data
+      - BADGER_DIRECTORY_KEY=/badger/key
+      # Production performance settings
+      - QUERY_MAX_CLOCK_SKEW_ADJUSTMENT=0s
+      - COLLECTOR_QUEUE_SIZE=2000
+      - COLLECTOR_NUM_WORKERS=50
+    volumes:
+      - news_prod_jaeger_data:/badger
+    user: "0:0"  # Run as root to avoid permission issues
+    networks:
+      - news_prod_network
+    restart: unless-stopped
+    # Jaeger health check
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:14269/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    # Resource limits for tracing
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '0.5'
+        reservations:
+          memory: 128M
+          cpus: '0.1'
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  prod_elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.11.0
+    container_name: news_prod_elasticsearch
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+    environment:
+      - discovery.type=single-node
+      - cluster.name=news-prod-cluster
+      - node.name=news-prod-node-1
+      - xpack.security.enabled=true
+      - ELASTIC_PASSWORD=newsapi_prod_es_2025!
+      - xpack.security.http.ssl.enabled=false
+      - xpack.security.transport.ssl.enabled=false
+      - bootstrap.memory_lock=true
+      - "ES_JAVA_OPTS=-Xms2g -Xmx2g"
+      # Production performance tuning
+      - cluster.routing.allocation.disk.watermark.low=85%
+      - cluster.routing.allocation.disk.watermark.high=90%
+      - cluster.routing.allocation.disk.watermark.flood_stage=95%
+      - indices.memory.index_buffer_size=20%
+      - indices.fielddata.cache.size=20%
+      - indices.requests.cache.size=5%
+    volumes:
+      - news_prod_elasticsearch_data:/usr/share/elasticsearch/data
+      - ./elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml:ro
+    networks:
+      - news_prod_network
+    restart: unless-stopped
+    # Production-grade health checks with authentication
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f -u elastic:newsapi_prod_es_2025! http://localhost:9200/_cluster/health || exit 1"]
+      interval: 30s
+      timeout: 15s
+      retries: 5
+      start_period: 120s
+    # Production ElasticSearch resource limits
+    deploy:
+      resources:
+        limits:
+          memory: 4G
+          cpus: '2.0'
+        reservations:
+          memory: 2G
+          cpus: '1.0'
+    # Security and performance settings
+    security_opt:
+      - no-new-privileges:true
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+      nofile:
+        soft: 65536
+        hard: 65536
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  prod_prometheus:
+    image: prom/prometheus:v2.45.0
+    container_name: news_prod_prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ../../monitoring/prometheus-prod.yml:/etc/prometheus/prometheus.yml:ro
+      - news_prod_prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=30d'
+      - '--web.enable-lifecycle'
+      - '--web.enable-admin-api'
+    networks:
+      - news_prod_network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:9090/-/healthy"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: '1.0'
+        reservations:
+          memory: 256M
+          cpus: '0.25'
+    security_opt:
+      - no-new-privileges:true
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  prod_grafana:
+    image: grafana/grafana:10.2.0
+    container_name: news_prod_grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=grafana_prod_2025!
+      - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_INSTALL_PLUGINS=grafana-piechart-panel
+      - GF_SERVER_ROOT_URL=http://localhost:3000/
+      - GF_ANALYTICS_REPORTING_ENABLED=false
+      - GF_ANALYTICS_CHECK_FOR_UPDATES=false
+    volumes:
+      - news_prod_grafana_data:/var/lib/grafana
+      - ../../monitoring/grafana/provisioning-prod:/etc/grafana/provisioning:ro
+      - ../../monitoring/grafana/dashboards:/var/lib/grafana/dashboards:ro
+    depends_on:
+      prod_prometheus:
+        condition: service_healthy
+      prod_jaeger:
+        condition: service_healthy
+    networks:
+      - news_prod_network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:3000/api/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '0.5'
+        reservations:
+          memory: 128M
+          cpus: '0.25'
+    security_opt:
+      - no-new-privileges:true
+    user: "472:472"  # Grafana user
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  prod_worker:
+    build:
+      context: ../../
+      dockerfile: Dockerfile.worker
+    image: news-worker:prod-latest
+    container_name: news_prod_worker
+    env_file:
+      - .env.prod
+    environment:
+      # Production worker configuration
+      - QUEUE_TRANSLATION_WORKERS=3
+      - QUEUE_VIDEO_WORKERS=2
+      - QUEUE_AGENT_WORKERS=3
+      - QUEUE_GENERAL_WORKERS=2
+      - QUEUE_MAX_RETRIES=5
+      - QUEUE_RETRY_DELAY=300
+      - QUEUE_JOB_TIMEOUT=1800
+      - QUEUE_DEAD_LETTER_ENABLED=true
+      - LOG_LEVEL=info
+      - GIN_MODE=release
+    depends_on:
+      prod_db:
+        condition: service_healthy
+      prod_redis:
+        condition: service_healthy
+    networks:
+      - news_prod_network
+    restart: unless-stopped
+    # Production worker resource limits - optimized for background job processing
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+          cpus: '2.0'
+        reservations:
+          memory: 512M
+          cpus: '0.5'
+    # Security and performance settings
+    security_opt:
+      - no-new-privileges:true
+    read_only: false  # Need write access for temp files during job processing
+    tmpfs:
+      - /tmp:rw,size=200M,mode=1777
+    ulimits:
+      nproc: 65535
+      nofile:
+        soft: 65535
+        hard: 65535
+    # Production logging configuration
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    # Worker health check - check if worker processes are responding
+    healthcheck:
+      test: ["CMD-SHELL", "pgrep -f 'worker' || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+# Production-grade persistent volumes with performance optimizations
+volumes:
+  news_prod_db_data:
+    driver: local
+  news_prod_redis_data:
+    driver: local
+  news_prod_jaeger_data:
+    driver: local
+  news_prod_elasticsearch_data:
+    driver: local
+  news_prod_prometheus_data:
+    driver: local
+  news_prod_grafana_data:
+    driver: local
+
+# Production network with custom configuration
+networks:
+  news_prod_network:
+    driver: bridge
+    driver_opts:
+      com.docker.network.bridge.name: news-prod-br
+      com.docker.network.driver.mtu: 1500
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.30.0.0/16
+          gateway: 172.30.0.1

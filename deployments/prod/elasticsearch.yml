@@ -1,0 +1,39 @@
+# ElasticSearch Production Configuration
+cluster.name: "news-prod-cluster"
+node.name: "news-prod-node-1"
+
+# Network settings
+network.host: 0.0.0.0
+http.port: 9200
+transport.port: 9300
+
+# Path settings
+path.data: /usr/share/elasticsearch/data
+path.logs: /usr/share/elasticsearch/logs
+
+# Memory settings
+bootstrap.memory_lock: false
+
+# Discovery settings for single-node setup
+discovery.type: single-node
+
+# Security settings
+xpack.security.enabled: true
+xpack.security.http.ssl.enabled: false
+xpack.security.transport.ssl.enabled: false
+
+# Monitoring settings
+xpack.monitoring.collection.enabled: true
+
+# Performance tuning
+indices.fielddata.cache.size: 20%
+indices.memory.index_buffer_size: 20%
+indices.requests.cache.size: 5%
+
+# Cluster settings
+cluster.routing.allocation.disk.watermark.low: 85%
+cluster.routing.allocation.disk.watermark.high: 90%
+cluster.routing.allocation.disk.watermark.flood_stage: 95%
+
+# Index settings
+action.destructive_requires_name: true

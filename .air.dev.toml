@@ -1,0 +1,78 @@
+# .air.dev.toml
+# Optimized Air config for development environment with ARM architecture
+
+root = "."
+testdata_dir = "testdata"
+tmp_dir = "tmp"
+
+[build]
+  # Pre-build commands - Generate Swagger docs first (temporarily disabled)
+  pre_cmd = []
+  # Build command optimized for high-concurrency development
+  cmd = "CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -mod=readonly -ldflags='-w -s -X main.buildMode=optimized' -gcflags='-l=4' -o ./tmp/main ./cmd/api/main.go"
+  # Post-build commands
+  post_cmd = []
+  # Binary location
+  bin = "tmp/main"
+  # Full binary command with high-concurrency environment optimizations
+  full_bin = "APP_ENV=dev APP_USER=air GOGC=100 GOMEMLIMIT=1GiB GOMAXPROCS=0 ./tmp/main"
+  # Watch these file extensions
+  include_ext = ["go", "json", "env"]
+  # Exclude directories (optimized for performance)
+  exclude_dir = [
+    "assets", "tmp", "vendor", "testdata", "node_modules", ".git", 
+    "deployments", "kubernetes", "archive", "bin", ".vscode",
+    "logs", "uploads", "scripts", "migrations"
+  ]
+  # Include specific directories only
+  include_dir = ["cmd", "internal", "pkg"]
+  # Include specific files
+  include_file = []
+  # Exclude files
+  exclude_file = []
+  # Exclude test files and specific patterns
+  exclude_regex = ["_test\\.go$", ".*\\.tmp$", ".*\\.log$"]
+  # Don't trigger rebuild for unchanged files
+  exclude_unchanged = true
+  # Don't follow symlinks to avoid infinite loops
+  follow_symlink = false
+  # Error log location
+  log = "errors.log"
+  # Use fsnotify instead of polling for better ARM performance
+  poll = false
+  # Longer delay to prevent excessive rebuilds
+  delay = 1000 # ms
+  # Stop on build errors
+  stop_on_error = true
+  # Send interrupt signal before killing
+  send_interrupt = true
+  # Delay before killing process
+  kill_delay = "2s"
+  # Rerun after successful build
+  rerun = true
+  # Delay after rerun to stabilize
+  rerun_delay = 1000
+  # No additional arguments
+  args_bin = []
+
+[log]
+  # Show timestamps
+  time = true
+  # Show only main logs to reduce noise
+  main_only = true
+
+[color]
+  main = "magenta"
+  watcher = "cyan"
+  build = "yellow"
+  runner = "green"
+
+[misc]
+  # Clean tmp directory on exit
+  clean_on_exit = true
+
+[screen]
+  # Clear screen on startup
+  clear_on_startup = true
+  # Keep scroll history
+  keep_scroll = false

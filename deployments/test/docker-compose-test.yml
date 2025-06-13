@@ -1,0 +1,153 @@
+services:
+  test_api:
+    build:
+      context: ../..
+      dockerfile: deployments/dockerfiles/Dockerfile.test
+      platforms:
+        - linux/arm64
+      # Test için cache kullan, sadece kod değişirse rebuild et
+      cache_from:
+        - news-api:test-cache
+    image: news-api:test-cache
+    container_name: news_test_api
+    ports:
+      - "8082:8082"
+    env_file:
+      - .env.test
+    depends_on:
+      test_db:
+        condition: service_healthy
+      test_redis:
+        condition: service_healthy
+      test_elasticsearch:
+        condition: service_healthy
+    networks:
+      - news_test_network
+    restart: unless-stopped
+    # Resource limits to prevent CPU spike (optimized for test environment)
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 768M
+        reservations:
+          cpus: '0.25'
+          memory: 128M
+    # Use the built binary from Dockerfile.test (no command override needed)
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8082/health || exit 1"]
+      interval: 30s
+      timeout: 15s
+      retries: 5
+      start_period: 90s
+
+  test_db:
+    image: postgres:15-alpine
+    container_name: news_test_db
+    ports:
+      - "5434:5432"
+    environment:
+      - POSTGRES_USER=testuser
+      - POSTGRES_PASSWORD=testpass
+      - POSTGRES_DB=newsapi_test
+    volumes:
+      - news_test_db_data:/var/lib/postgresql/data
+      - ../../scripts/seeds:/docker-entrypoint-initdb.d/seeds
+    networks:
+      - news_test_network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U testuser -d newsapi_test"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  test_redis:
+    image: redis:7-alpine
+    container_name: news_test_redis
+    ports:
+      - "6381:6379"
+    volumes:
+      - news_test_redis_data:/data
+    networks:
+      - news_test_network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+
+  test_jaeger:
+    image: jaegertracing/all-in-one:latest
+    container_name: news_test_jaeger
+    ports:
+      - "16688:16686"
+      - "14270:14268"
+    environment:
+      - COLLECTOR_OTLP_ENABLED=true
+    networks:
+      - news_test_network
+    restart: unless-stopped
+
+  test_elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.11.0
+    container_name: news_test_elasticsearch
+    ports:
+      - "9202:9200"
+      - "9302:9300"
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    volumes:
+      - news_test_elasticsearch_data:/usr/share/elasticsearch/data
+    networks:
+      - news_test_network
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 1G
+        reservations:
+          cpus: '0.25'
+          memory: 512M
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:9200/_cluster/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+
+  test_kibana:
+    image: docker.elastic.co/kibana/kibana:8.11.0
+    container_name: news_test_kibana
+    ports:
+      - "5603:5601"
+    environment:
+      - ELASTICSEARCH_HOSTS=http://test_elasticsearch:9200
+      - SERVER_NAME=test_kibana
+    depends_on:
+      test_elasticsearch:
+        condition: service_healthy
+    networks:
+      - news_test_network
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+        reservations:
+          cpus: '0.1'
+          memory: 256M
+
+volumes:
+  news_test_db_data:
+  news_test_redis_data:
+  news_test_elasticsearch_data:
+
+networks:
+  news_test_network:
+    driver: bridge

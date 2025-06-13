@@ -1,0 +1,80 @@
+# Multi-stage build for optimized worker
+FROM golang:1.24-alpine AS builder
+
+WORKDIR /app
+
+# Install build dependencies
+RUN apk add --no-cache git ca-certificates tzdata make
+
+# Copy go module files
+COPY go.mod go.sum ./
+
+# Configure Go proxy with fallbacks
+ENV GOPROXY=https://proxy.golang.org,direct \
+    GOSUMDB=sum.golang.org \
+    GO111MODULE=on \
+    CGO_ENABLED=0 \
+    GOOS=linux \
+    GOARCH=arm64
+
+# Download dependencies with retry
+RUN for i in 1 2 3; do \
+        echo "Attempt $i: Downloading Go modules..." && \
+        go mod download && break || { \
+            echo "Failed attempt $i, retrying..." && \
+            sleep 10; \
+        } \
+    done
+
+# Copy only worker-specific source files
+COPY cmd/worker/ ./cmd/worker/
+COPY internal/database/ ./internal/database/
+COPY internal/queue/ ./internal/queue/
+COPY internal/services/ ./internal/services/
+COPY internal/models/ ./internal/models/
+COPY internal/config/ ./internal/config/
+COPY internal/cache/ ./internal/cache/
+COPY internal/tracing/ ./internal/tracing/
+COPY internal/metrics/ ./internal/metrics/
+COPY internal/middleware/ ./internal/middleware/
+COPY internal/repositories/ ./internal/repositories/
+COPY internal/storage/ ./internal/storage/
+COPY internal/json/ ./internal/json/
+COPY internal/dto/ ./internal/dto/
+
+# Build worker binary with optimizations
+RUN go build \
+    -mod=mod \
+    -buildvcs=false \
+    -ldflags="-w -s -X main.version=1.0.0" \
+    -trimpath \
+    -o worker \
+    ./cmd/worker
+
+# Final minimal runtime stage
+FROM alpine:latest
+
+# Install runtime dependencies
+RUN apk add --no-cache ca-certificates tzdata curl
+
+# Create non-root user for security
+RUN addgroup -g 1001 -S worker && \
+    adduser -u 1001 -S worker -G worker
+
+WORKDIR /app
+
+# Copy binary and set ownership
+COPY --from=builder --chown=worker:worker /app/worker .
+
+# Switch to non-root user
+USER worker
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD pgrep -f worker || exit 1
+
+# Expose metrics port (if needed)
+EXPOSE 9090
+
+# Run worker
+CMD ["./worker"]

@@ -1,0 +1,291 @@
+services:
+  dev_api:
+    build:
+      context: ../..
+      dockerfile: deployments/dockerfiles/Dockerfile.dev
+      platforms:
+        - linux/arm64
+    container_name: news_dev_api
+    ports:
+      - "8081:8081"  # Main API port
+      # Profiling and monitoring ports for development
+      - "6060:6060"  # pprof endpoints (alternative access)
+    env_file:
+      - .env.dev
+    environment:
+      - ELASTICSEARCH_INDEX=news-articles
+      # High-concurrency Go runtime optimizations
+      - GOGC=100
+      - GOMAXPROCS=0
+      # HTTP server optimizations
+      - GIN_MODE=release
+      - HTTP_READ_TIMEOUT=3s
+      - HTTP_WRITE_TIMEOUT=8s
+      - HTTP_IDLE_TIMEOUT=120s
+      - HTTP_READ_HEADER_TIMEOUT=1s
+      - MAX_HEADER_BYTES=4194304
+      # Connection pooling optimizations
+      - DB_MAX_IDLE_CONNS=25
+      - DB_MAX_OPEN_CONNS=100
+      - DB_CONN_MAX_LIFETIME=1h
+      - DB_CONN_MAX_IDLE_TIME=10m
+      # Rate limiting DISABLED for development/testing
+      - RATE_LIMIT_ENABLED=false
+      - RATE_LIMIT_GLOBAL_RPM=999999
+      - RATE_LIMIT_GLOBAL_BURST=999999
+      - RATE_LIMIT_API_RPS=999999
+      - RATE_LIMIT_API_BURST=999999
+      - DISABLE_RATE_LIMITS=true
+    volumes:
+      # Mount source code for live reloading - optimized for performance
+      - ../../:/app:cached
+      # Exclude build artifacts and sensitive directories
+      - /app/vendor
+      - /app/bin
+      - /app/.git
+      - /app/tmp
+      - /app/node_modules
+    depends_on:
+      dev_db:
+        condition: service_healthy
+      dev_redis:
+        condition: service_healthy
+    networks:
+      - news_dev_network
+    restart: unless-stopped
+    # Use optimized Air config
+    command: ["air", "-c", ".air.dev.toml"]
+    # Resource limits optimized for high-concurrency load testing
+    deploy:
+      resources:
+        limits:
+          cpus: '4.0'      # Increased CPU allocation
+          memory: 3G       # Increased memory allocation
+        reservations:
+          cpus: '1.0'      # Higher baseline CPU
+          memory: 512M     # Higher baseline memory
+    # System-level optimizations
+    ulimits:
+      nofile:
+        soft: 65536
+        hard: 65536
+      nproc:
+        soft: 32768
+        hard: 32768
+    # Enable higher network performance
+    sysctls:
+      - net.core.somaxconn=65535
+      - net.ipv4.tcp_keepalive_time=600
+      - net.ipv4.tcp_keepalive_intvl=60
+      - net.ipv4.tcp_fin_timeout=30
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8081/health || exit 1"]
+      interval: 30s
+      timeout: 15s
+      retries: 5
+      start_period: 120s
+
+  dev_db:
+    image: postgres:15-alpine
+    container_name: news_dev_db
+    ports:
+      - "5433:5432"
+    environment:
+      - POSTGRES_USER=devuser
+      - POSTGRES_PASSWORD=devpass
+      - POSTGRES_DB=newsapi_dev
+      # PostgreSQL optimizations for high concurrency
+      - POSTGRES_SHARED_BUFFERS=256MB
+      - POSTGRES_EFFECTIVE_CACHE_SIZE=1GB
+      - POSTGRES_MAINTENANCE_WORK_MEM=64MB
+      - POSTGRES_CHECKPOINT_COMPLETION_TARGET=0.9
+      - POSTGRES_WAL_BUFFERS=16MB
+      - POSTGRES_DEFAULT_STATISTICS_TARGET=100
+      - POSTGRES_RANDOM_PAGE_COST=1.1
+      - POSTGRES_EFFECTIVE_IO_CONCURRENCY=200
+      - POSTGRES_WORK_MEM=4MB
+      - POSTGRES_MIN_WAL_SIZE=1GB
+      - POSTGRES_MAX_WAL_SIZE=4GB
+      - POSTGRES_MAX_WORKER_PROCESSES=8
+      - POSTGRES_MAX_PARALLEL_WORKERS_PER_GATHER=2
+      - POSTGRES_MAX_PARALLEL_WORKERS=8
+      - POSTGRES_MAX_PARALLEL_MAINTENANCE_WORKERS=2
+    volumes:
+      - news_dev_db_data:/var/lib/postgresql/data
+      - ../../migrations:/docker-entrypoint-initdb.d
+      - ../../scripts/seeds:/docker-entrypoint-initdb.d/seeds
+    networks:
+      - news_dev_network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U devuser -d newsapi_dev"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  dev_redis:
+    image: redis:7-alpine
+    container_name: news_dev_redis
+    ports:
+      - "6380:6379"
+    volumes:
+      - news_dev_redis_data:/data
+    networks:
+      - news_dev_network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+
+  # dev_jaeger:
+  #   image: jaegertracing/all-in-one:latest
+  #   container_name: news_dev_jaeger
+  #   ports:
+  #     - "16687:16686"
+  #     - "14269:14268"
+  #     - "4317:4317"   # OTLP gRPC
+  #     - "4318:4318"   # OTLP HTTP
+  #   environment:
+  #     - COLLECTOR_OTLP_ENABLED=true
+  #   networks:
+  #     - news_dev_network
+  #   restart: unless-stopped
+
+  #dev_elasticsearch:
+  #  image: docker.elastic.co/elasticsearch/elasticsearch:8.11.0
+  #  container_name: news_dev_elasticsearch
+  #  ports:
+  #    - "9200:9200"
+  #    - "9300:9300"
+  #  environment:
+  #    - discovery.type=single-node
+  #    - cluster.name=news-dev-cluster
+  #    - node.name=news-dev-node
+  #    - xpack.security.enabled=false
+  #    - xpack.security.enrollment.enabled=false
+  #    - xpack.security.http.ssl.enabled=false
+  #    - xpack.security.transport.ssl.enabled=false
+  #    - "ES_JAVA_OPTS=-Xms1g -Xmx1g"
+  #    - bootstrap.memory_lock=true
+  #  ulimits:
+  #    memlock:
+  #      soft: -1
+  #      hard: -1
+  #  volumes:
+  #    - news_dev_elasticsearch_data:/usr/share/elasticsearch/data
+  #  networks:
+  #    - news_dev_network
+  #  restart: unless-stopped
+  #  healthcheck:
+  #    test: ["CMD-SHELL", "curl -f http://localhost:9200/_cluster/health || exit 1"]
+  #    interval: 30s
+  #    timeout: 10s
+  #    retries: 5
+  #    start_period: 60s
+  #  deploy:
+  #    resources:
+  #      limits:
+  #        memory: 2.5G
+  #      reservations:
+  #        memory: 512M
+#
+  # dev_kibana:
+  #   image: docker.elastic.co/kibana/kibana:8.11.0
+  #   container_name: news_dev_kibana
+  #   ports:
+  #     - "5602:5601"
+  #   environment:
+  #     - ELASTICSEARCH_HOSTS=http://dev_elasticsearch:9200
+  #     - SERVER_NAME=news-dev-kibana
+  #     - SERVER_HOST=0.0.0.0
+  #     - xpack.security.enabled=false
+  #     - xpack.encryptedSavedObjects.encryptionKey=a7a6311933d3503b89bc2dbc36572c33a7a6311933d3503b89bc2dbc36572c33
+  #   depends_on:
+  #     dev_elasticsearch:
+  #       condition: service_healthy
+  #   networks:
+  #     - news_dev_network
+  #   restart: unless-stopped
+  #   healthcheck:
+  #     test: ["CMD-SHELL", "curl -f http://localhost:5601/api/status || exit 1"]
+  #     interval: 30s
+  #     timeout: 10s
+  #     retries: 5
+  #     start_period: 60s
+
+  dev_worker:
+    build:
+      context: ../..
+      dockerfile: deployments/dockerfiles/Dockerfile.worker
+      platforms:
+        - linux/arm64
+      args:
+        - BUILDKIT_INLINE_CACHE=1
+      # Multi-stage build caching
+      cache_from:
+        - type=gha
+      cache_to:
+        - type=gha,mode=max
+    container_name: news_dev_worker
+    env_file:
+      - .env.dev
+    environment:
+      # Worker-specific configuration
+      - QUEUE_TRANSLATION_WORKERS=1
+      - QUEUE_VIDEO_WORKERS=1
+      - QUEUE_AGENT_WORKERS=1
+      - QUEUE_GENERAL_WORKERS=1
+      - QUEUE_MAX_RETRIES=3
+      - QUEUE_RETRY_DELAY=60
+      - QUEUE_JOB_TIMEOUT=300
+      - QUEUE_DEAD_LETTER_ENABLED=true
+      - LOG_LEVEL=INFO
+    depends_on:
+      dev_db:
+        condition: service_healthy
+      dev_redis:
+        condition: service_healthy
+    networks:
+      - news_dev_network
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '0.5'
+        reservations:
+          memory: 256M
+          cpus: '0.25'
+
+  dev_atlas:
+    build:
+      context: ../..
+      dockerfile: deployments/dockerfiles/Dockerfile.atlas
+    container_name: news_dev_atlas
+    environment:
+      - ATLAS_ENV=dev
+      - DATABASE_URL=postgres://devuser:devpass@dev_db:5432/newsapi_dev?sslmode=disable
+      - DB_HOST=dev_db
+      - DB_PORT=5432
+    volumes:
+      - ../../migrations:/app/migrations:rw
+      - ../../schema:/app/schema:rw
+    depends_on:
+      dev_db:
+        condition: service_healthy
+    networks:
+      - news_dev_network
+    profiles:
+      - atlas
+    restart: "no"  # Run once for migrations
+
+volumes:
+  news_dev_db_data:
+  news_dev_redis_data:
+  news_dev_elasticsearch_data:
+
+networks:
+  news_dev_network:
+    driver: bridge

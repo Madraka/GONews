@@ -21,10 +21,11 @@ This project and everyone participating in it is governed by our commitment to c
 
 ### Prerequisites
 
-- Go 1.24 or higher
+- Go 1.22 or higher
 - PostgreSQL 15+
 - Redis 7+
-- Docker (optional but recommended)
+- Docker & Docker Compose (recommended)
+- Make (for running Makefile commands)
 
 ### Development Setup
 
@@ -41,22 +42,26 @@ This project and everyone participating in it is governed by our commitment to c
 
 3. **Set up environment variables**
    ```bash
-   cp deployments/dev/env.dev.example deployments/dev/env.dev
-   # Edit the file with your configuration
+   cp deployments/dev/env.dev deployments/dev/.env
+   # Edit the .env file with your database and Redis configuration
    ```
 
-4. **Run database migrations**
+4. **Run with Docker (Recommended)**
    ```bash
+   # Start all services including database
+   make docker-dev
+   ```
+   
+   **Or run manually:**
+   
+   ```bash
+   # Run database migrations
    make migrate-up
-   ```
-
-5. **Seed the database**
-   ```bash
+   
+   # Seed the database
    make seed
-   ```
-
-6. **Start the development server**
-   ```bash
+   
+   # Start the development server
    make dev
    ```
 

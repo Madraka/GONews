@@ -56,7 +56,7 @@ The News API endpoints (`/api/news`) were returning empty results despite having
 ### System Infrastructure
 - **Database**: 33 tables fully populated with comprehensive seed data
 - **Users**: 50 users with proper roles and authentication
-- **Categories**: 12 news categories (Son Dakika, Teknoloji, Sağlık, etc.)
+- **Categories**: 12 news categories (Breaking News, Technology, Health, etc.)
 - **Tags**: 26 content tags for article organization
 - **Settings**: 19 system configuration settings
 - **Navigation**: 3 menu systems (main, footer, mobile) with 17 menu items

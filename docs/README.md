@@ -66,6 +66,17 @@
 - Legacy configuration documents
 - Historical migration reports
 
+**Turkish Documents** (moved to `/docs/archive/turkish/`):
+- Historical development documents in Turkish
+- Technical analysis documents
+- Legacy test reports
+
+## 🌍 Documentation Language Status
+
+- **Primary Language**: English (for international community)
+- **Archived Languages**: Turkish documents preserved in archive
+- **Language Policy**: See [Language Documentation Status](./LANGUAGE_DOCUMENTATION_STATUS.md)
+
 ## 🚀 Quick Links
 
 ### Most Used

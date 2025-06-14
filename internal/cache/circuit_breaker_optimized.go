@@ -2,8 +2,8 @@ package cache
 
 import (
 	"fmt"
-	"time"
 
+	"news/internal/config"
 	"news/internal/metrics"
 	"news/internal/middleware"
 )
@@ -15,30 +15,33 @@ var (
 	optimizedCacheDeleteCircuitBreaker *middleware.CircuitBreaker
 )
 
-// Initialize optimized circuit breakers with enhanced configurations
+// Initialize optimized circuit breakers with configurations from environment
 func init() {
+	// Get cache configuration from environment
+	cacheConfig := config.GetCacheConfig()
+
 	// Enhanced circuit breaker for cache GET operations
 	optimizedCacheGetCircuitBreaker = middleware.NewCircuitBreaker(
 		"optimized_cache_get",
-		middleware.WithFailureThreshold(5),    // Allow more failures before opening
-		middleware.WithSuccessThreshold(3),    // Require more successes to close
-		middleware.WithTimeout(1*time.Second), // Faster recovery attempts
+		middleware.WithFailureThreshold(cacheConfig.CircuitBreakerFailureThreshold),
+		middleware.WithSuccessThreshold(cacheConfig.CircuitBreakerSuccessThreshold),
+		middleware.WithTimeout(cacheConfig.CircuitBreakerTimeout),
 	)
 
 	// Enhanced circuit breaker for cache SET operations
 	optimizedCacheSetCircuitBreaker = middleware.NewCircuitBreaker(
 		"optimized_cache_set",
-		middleware.WithFailureThreshold(5),
-		middleware.WithSuccessThreshold(3),
-		middleware.WithTimeout(1*time.Second),
+		middleware.WithFailureThreshold(cacheConfig.CircuitBreakerFailureThreshold),
+		middleware.WithSuccessThreshold(cacheConfig.CircuitBreakerSuccessThreshold),
+		middleware.WithTimeout(cacheConfig.CircuitBreakerTimeout),
 	)
 
 	// Enhanced circuit breaker for cache DELETE operations
 	optimizedCacheDeleteCircuitBreaker = middleware.NewCircuitBreaker(
 		"optimized_cache_delete",
-		middleware.WithFailureThreshold(5),
-		middleware.WithSuccessThreshold(3),
-		middleware.WithTimeout(1*time.Second),
+		middleware.WithFailureThreshold(cacheConfig.CircuitBreakerFailureThreshold),
+		middleware.WithSuccessThreshold(cacheConfig.CircuitBreakerSuccessThreshold),
+		middleware.WithTimeout(cacheConfig.CircuitBreakerTimeout),
 	)
 }
 

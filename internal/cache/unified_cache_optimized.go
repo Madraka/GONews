@@ -6,6 +6,7 @@ import (
 	"sync"
 	"time"
 
+	"news/internal/config"
 	"news/internal/json"
 	"news/internal/metrics"
 
@@ -65,24 +66,25 @@ var (
 	unifiedCacheOnce      sync.Once
 )
 
-// GetOptimalCacheConfig returns enterprise-grade cache configuration
+// GetOptimalCacheConfig returns enterprise-grade cache configuration from environment
 func GetOptimalCacheConfig() *CacheConfig {
+	configData := config.GetCacheConfig()
 	return &CacheConfig{
-		// L1 Ristretto optimization for hot data
-		L1DefaultTTL:   5 * time.Minute, // Keep hot data for 5 minutes
-		L1MaxCostRatio: 0.8,             // Use 80% of available memory
+		// L1 Ristretto optimization from environment
+		L1DefaultTTL:   configData.L1DefaultTTL,
+		L1MaxCostRatio: configData.L1MaxCostRatio,
 
-		// L2 Redis optimization for persistent data
-		L2DefaultTTL: 1 * time.Hour,  // Standard TTL for most data
-		L2LongTTL:    24 * time.Hour, // Long TTL for stable data
+		// L2 Redis optimization from environment
+		L2DefaultTTL: configData.L2DefaultTTL,
+		L2LongTTL:    configData.L2LongTTL,
 
-		// Singleflight optimization to prevent duplicate calls
-		EnableSingleflight: true,
-		SingleflightTTL:    10 * time.Second, // Prevent duplicate calls for 10s
+		// Singleflight optimization from environment
+		EnableSingleflight: configData.EnableSingleflight,
+		SingleflightTTL:    configData.SingleflightTTL,
 
-		// Health monitoring for proactive management
-		HealthCheckInterval: 30 * time.Second,
-		MaxFailureRate:      0.05, // Alert if >5% failure rate
+		// Health monitoring from environment
+		HealthCheckInterval: configData.HealthCheckInterval,
+		MaxFailureRate:      configData.MaxFailureRate,
 	}
 }
 

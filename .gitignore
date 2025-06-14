@@ -212,3 +212,4 @@ docs/docs.go
 # Scripts and automation
 demo/
 tmp
+AGENT_*.md

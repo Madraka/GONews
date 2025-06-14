@@ -1,8 +1,10 @@
-# 🤝 Contributing to News API
+# 🤝 Contributing to GONews
 
-First off, **thank you** for considering contributing to News API! 🎉 
+First off, **thank you** for considering contributing to GONews! 🎉 
 
 As an **open source project**, we welcome contributions from developers around the world. Whether you're fixing a bug, adding a feature, improving documentation, or helping with translations, every contribution makes a difference.
+
+**GitHub Repository**: https://github.com/Madraka/GONews
 
 ## 📋 Table of Contents
 
@@ -17,12 +19,12 @@ As an **open source project**, we welcome contributions from developers around t
 ## 🌟 Quick Start for Contributors
 
 ### New to Open Source?
-- Check our [Good First Issues](https://github.com/your-username/news-api/labels/good%20first%20issue)
+- Check our [Good First Issues](https://github.com/Madraka/GONews/labels/good%20first%20issue)
 - Read our [Developer Guide](./docs/DEVELOPER_GUIDE.md)
-- Join our [Discussions](https://github.com/your-username/news-api/discussions)
+- Join our [Discussions](https://github.com/Madraka/GONews/discussions)
 
 ### Experienced Contributor?
-- Look at [Help Wanted Issues](https://github.com/your-username/news-api/labels/help%20wanted)
+- Look at [Help Wanted Issues](https://github.com/Madraka/GONews/labels/help%20wanted)
 - Check our [Roadmap](./README.md#-roadmap)
 - Review our [Architecture Guide](./docs/README.md#architecture--implementation)
 
@@ -89,11 +91,11 @@ Documentation is as important as code!
 ### Quick Setup
 ```bash
 # 1. Fork and clone
-git clone https://github.com/YOUR-USERNAME/news-api.git
-cd news-api
+git clone https://github.com/YOUR-USERNAME/GONews.git
+cd GONews
 
 # 2. Add upstream remote
-git remote add upstream https://github.com/original-owner/news-api.git
+git remote add upstream https://github.com/Madraka/GONews.git
 
 # 3. Install dependencies
 go mod download
@@ -501,7 +503,7 @@ make migrate-down
 ## Project Structure
 
 ```
-News/
+GONews/
 ├── cmd/                    # Application entry points
 ├── internal/               # Private application code
 │   ├── handlers/          # HTTP handlers
@@ -515,8 +517,18 @@ News/
 └── migrations/            # Database migrations
 ```
 
-## Questions?
+## ❓ Questions?
 
-Feel free to open an issue with the question label, or reach out to the maintainers directly.
+### Getting Help
+- 📖 **Documentation**: Start with [docs/README.md](./docs/README.md)
+- 💬 **Discussions**: [GitHub Discussions](https://github.com/Madraka/GONews/discussions)
+- 🐛 **Issues**: [GitHub Issues](https://github.com/Madraka/GONews/issues)
+- 📧 **Direct Contact**: For sensitive issues only
+
+---
+
+**🏠 Repository**: https://github.com/Madraka/GONews  
+**🌟 Star the project** if you find it useful!  
+**📢 Share with others** who might be interested!
 
 Thank you for contributing! 🚀

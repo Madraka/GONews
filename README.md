@@ -1,4 +1,4 @@
-# 📰 News API
+# 📰 GONews - Open Source News API
 
 > **A modern, production-ready RESTful API for managing news articles with advanced features**
 
@@ -6,11 +6,15 @@
 ![Go Version](https://img.shields.io/badge/go-1.24+-blue.svg)
 ![License](https://img.shields.io/badge/license-MIT-green.svg)
 ![Open Source](https://img.shields.io/badge/open%20source-❤️-red.svg)
+![GitHub Stars](https://img.shields.io/github/stars/Madraka/GONews?style=social)
+![GitHub Forks](https://img.shields.io/github/forks/Madraka/GONews?style=social)
 
 ## 🌟 What's New - Now Open Source!
 
-This project has been migrated to **open source**! 🎉 We welcome contributions from the community. 
+**GONews** has been migrated to **open source**! 🎉 We welcome contributions from the community. 
 **[→ Learn about the migration](./docs/OPEN_SOURCE_MIGRATION.md)**
+
+[![GitHub Repository](https://img.shields.io/badge/GitHub-Madraka%2FGONews-blue?logo=github)](https://github.com/Madraka/GONews)
 
 ## ✨ Key Features
 
@@ -47,8 +51,8 @@ This project has been migrated to **open source**! 🎉 We welcome contributions
 
 ```bash
 # 1. Clone the repository
-git clone https://github.com/your-username/news-api.git
-cd news-api
+git clone https://github.com/Madraka/GONews.git
+cd GONews
 
 # 2. Start services with Docker
 make dev-up
@@ -227,4 +231,15 @@ This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) 
 ---
 
 **⭐ Star this repository if you find it useful!**
+
+**🐛 Found a bug?** [Report it here](https://github.com/Madraka/GONews/issues)  
+**💡 Have an idea?** [Start a discussion](https://github.com/Madraka/GONews/discussions)  
+**📧 Questions?** Check our [documentation](./docs/README.md) first
+
+## 🔗 Links
+
+- **🏠 GitHub Repository**: https://github.com/Madraka/GONews
+- **🐛 Issues**: https://github.com/Madraka/GONews/issues
+- **💬 Discussions**: https://github.com/Madraka/GONews/discussions
+- **📚 Wiki**: https://github.com/Madraka/GONews/wiki (Coming Soon)
 

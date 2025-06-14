@@ -1,6 +1,6 @@
-# 📚 News API Documentation Index
+# 📚 GONews Documentation Index
 
-> **Quick Navigation**: This document serves as the central hub for all News API documentation.
+> **Quick Navigation**: This document serves as the central hub for all GONews documentation.
 
 ## 🚀 Getting Started
 
@@ -87,7 +87,9 @@
 ### External Resources
 - 🔗 **Swagger UI**: `http://localhost:8080/swagger/index.html` (when running)
 - 🔗 **Grafana**: `http://localhost:3000` (monitoring)
-- 🔗 **Repository**: [GitHub Repository URL]
+- 🔗 **GitHub Repository**: https://github.com/Madraka/GONews
+- 🔗 **Issues**: https://github.com/Madraka/GONews/issues
+- 🔗 **Discussions**: https://github.com/Madraka/GONews/discussions
 
 ---
 

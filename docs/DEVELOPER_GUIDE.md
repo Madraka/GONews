@@ -1,11 +1,11 @@
-# 🚀 Developer Quick Start Guide
+# 🚀 GONews Developer Quick Start Guide
 
-Welcome to the News API project! This guide will help you get started with the newly organized codebase.
+Welcome to the GONews project! This guide will help you get started with the newly organized codebase.
 
 ## 📁 Project Structure Overview
 
 ```
-News/
+GONews/
 ├── 📄 README.md                    # You are here!
 ├── 🛠️ Makefile                     # Build commands
 ├── 🐳 docker-compose.yml           # Main Docker setup
@@ -24,7 +24,7 @@ News/
 ### 1. Environment Setup
 ```bash
 # Clone and enter the project
-cd /Users/madraka/News
+cd /Users/madraka/GONews
 
 # Copy environment file
 cp .env.example .env  # Edit with your settings

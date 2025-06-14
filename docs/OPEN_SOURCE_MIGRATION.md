@@ -1,10 +1,12 @@
-# 🌟 Open Source Migration - News API
+# 🌟 Open Source Migration - GONews
 
 ## 📅 Migration Date: June 14, 2025
 
 ### 🎉 Project Status: Now Open Source!
 
-The News API project has been successfully migrated to an open source model. This document outlines the key changes and guidelines for the new open source community.
+The **GONews** project has been successfully migrated to an open source model. This document outlines the key changes and guidelines for the new open source community.
+
+**GitHub Repository**: https://github.com/Madraka/GONews
 
 ## 🔄 What Changed
 
@@ -87,7 +89,7 @@ The News API project has been successfully migrated to an open source model. Thi
 - 🚀 **Quick Start**: [DEVELOPER_GUIDE.md](./DEVELOPER_GUIDE.md)
 - 🐛 **Bug Reports**: GitHub Issues
 - 💬 **Discussions**: GitHub Discussions
-- 📧 **Contact**: [Your contact information]
+- 📧 **Contact**: [GitHub Issues](https://github.com/Madraka/GONews/issues) or [Discussions](https://github.com/Madraka/GONews/discussions)
 
 ---
 

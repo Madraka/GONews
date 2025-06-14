@@ -1,36 +1,50 @@
 ---
-name: Bug report
-about: Create a report to help us improve
+name: 🐛 Bug Report
+about: Create a report to help us improve GONews
 title: '[BUG] '
-labels: bug
+labels: ['bug', 'needs-triage']
 assignees: ''
 
 ---
 
-**Describe the bug**
+## 🐛 Bug Description
 A clear and concise description of what the bug is.
 
-**To Reproduce**
+## 🔄 Steps to Reproduce
 Steps to reproduce the behavior:
 1. Go to '...'
 2. Click on '....'
 3. Scroll down to '....'
 4. See error
 
-**Expected behavior**
+## ✅ Expected Behavior
 A clear and concise description of what you expected to happen.
 
-**Screenshots**
+## ❌ Actual Behavior
+A clear and concise description of what actually happened.
+
+## 📱 Environment
+- **OS**: [e.g. macOS, Linux, Windows]
+- **Go version**: [e.g. 1.24]
+- **GONews version**: [e.g. 1.0.0]
+- **Database**: [e.g. PostgreSQL 15]
+- **Redis version**: [e.g. 7.0]
+- **Browser**: [e.g. chrome, safari] (if applicable)
+
+## 📸 Screenshots
 If applicable, add screenshots to help explain your problem.
 
-**Environment (please complete the following information):**
-- OS: [e.g. macOS, Ubuntu]
-- Go version: [e.g. 1.22]
-- Browser [e.g. chrome, safari] (if applicable)
-- API version or commit hash
+## 📝 Logs
+If applicable, add relevant log outputs:
 
-**Additional context**
+```
+Paste your logs here
+```
+
+## 📋 Additional Context
 Add any other context about the problem here.
 
-**Logs**
-If applicable, add server logs or error messages.
+## ✅ Checklist
+- [ ] I have searched for similar issues
+- [ ] I have provided all the required information
+- [ ] I have tested this with the latest version

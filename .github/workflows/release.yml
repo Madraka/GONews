@@ -90,6 +90,41 @@ jobs:
       #   run: |
       #     go test ./... -v
 
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata for Docker
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository_owner }}/gonews
+          tags: |
+            type=raw,value=${{ steps.version.outputs.VERSION }}
+            type=raw,value=latest
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./deployments/dockerfiles/Dockerfile.prod
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          platforms: linux/amd64,linux/arm64
+          build-args: |
+            VERSION=${{ steps.version.outputs.VERSION }}
+            BUILD_TIME=${{ steps.version.outputs.BUILD_TIME }}
+            GIT_COMMIT=${{ steps.version.outputs.GIT_COMMIT }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
       - name: Generate release notes
         id: release_notes
         run: |
@@ -121,9 +156,23 @@ jobs:
           ```
           
           ## 🐳 Docker
+          
+          Docker image automatically built and published with this release:
+          
           ```bash
-          docker pull ghcr.io/madraka/gonews:${{ steps.version.outputs.VERSION }}
+          # Pull the latest version
+          docker pull ghcr.io/${{ github.repository_owner }}/gonews:${{ steps.version.outputs.VERSION }}
+          
+          # Or pull the latest
+          docker pull ghcr.io/${{ github.repository_owner }}/gonews:latest
+          
+          # Run the container
+          docker run -p 8080:8080 ghcr.io/${{ github.repository_owner }}/gonews:${{ steps.version.outputs.VERSION }}
           ```
+          
+          ### Multi-platform Support
+          - `linux/amd64` (Intel/AMD 64-bit)
+          - `linux/arm64` (ARM 64-bit, including Apple Silicon)
           EOF
 
       - name: Create GitHub Release

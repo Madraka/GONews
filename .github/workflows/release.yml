@@ -79,11 +79,20 @@ jobs:
         run: |
           echo "🔨 Building with version info..."
           mkdir -p bin
+          
+          # Build API binary
           go build \
             -v \
             -ldflags "-w -s -X news/internal/version.Version=${{ steps.version.outputs.VERSION }} -X news/internal/version.BuildTime=${{ steps.version.outputs.BUILD_TIME }} -X news/internal/version.GitCommit=${{ steps.version.outputs.GIT_COMMIT }}" \
             -o bin/news-api \
             ./cmd/api
+          
+          # Build Worker binary
+          go build \
+            -v \
+            -ldflags "-w -s -X news/internal/version.Version=${{ steps.version.outputs.VERSION }} -X news/internal/version.BuildTime=${{ steps.version.outputs.BUILD_TIME }} -X news/internal/version.GitCommit=${{ steps.version.outputs.GIT_COMMIT }}" \
+            -o bin/news-worker \
+            ./cmd/worker
 
       # Tests temporarily disabled - will be re-enabled after test fixes
       # - name: Run tests
@@ -109,7 +118,16 @@ jobs:
             type=raw,value=${{ steps.version.outputs.VERSION }}
             type=raw,value=latest
 
-      - name: Build and push Docker image
+      - name: Extract metadata for Worker Docker
+        id: meta-worker
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository_owner }}/gonews-worker
+          tags: |
+            type=raw,value=${{ steps.version.outputs.VERSION }}
+            type=raw,value=latest
+
+      - name: Build and push API Docker image
         uses: docker/build-push-action@v5
         with:
           context: .
@@ -124,6 +142,22 @@ jobs:
             GIT_COMMIT=${{ steps.version.outputs.GIT_COMMIT }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+      - name: Build and push Worker Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./deployments/dockerfiles/Dockerfile.worker
+          push: true
+          tags: ${{ steps.meta-worker.outputs.tags }}
+          labels: ${{ steps.meta-worker.outputs.labels }}
+          platforms: linux/amd64,linux/arm64
+          build-args: |
+            VERSION=${{ steps.version.outputs.VERSION }}
+            BUILD_TIME=${{ steps.version.outputs.BUILD_TIME }}
+            GIT_COMMIT=${{ steps.version.outputs.GIT_COMMIT }}
+          cache-from: type=gha,scope=worker
+          cache-to: type=gha,mode=max,scope=worker
 
       - name: Generate release notes
         id: release_notes
@@ -155,19 +189,44 @@ jobs:
           go build -o news-api cmd/api/main.go
           ```
           
-          ## 🐳 Docker
+          ## 🐳 Docker Images
           
-          Docker image automatically built and published with this release:
+          Two Docker images are automatically built and published with this release:
           
+          ### 📡 API Server
           ```bash
-          # Pull the latest version
+          # Pull the API server
           docker pull ghcr.io/${{ github.repository_owner }}/gonews:${{ steps.version.outputs.VERSION }}
           
-          # Or pull the latest
-          docker pull ghcr.io/${{ github.repository_owner }}/gonews:latest
-          
-          # Run the container
+          # Run the API server
           docker run -p 8080:8080 ghcr.io/${{ github.repository_owner }}/gonews:${{ steps.version.outputs.VERSION }}
+          ```
+          
+          ### 🔄 Background Worker
+          ```bash
+          # Pull the worker
+          docker pull ghcr.io/${{ github.repository_owner }}/gonews-worker:${{ steps.version.outputs.VERSION }}
+          
+          # Run the worker
+          docker run ghcr.io/${{ github.repository_owner }}/gonews-worker:${{ steps.version.outputs.VERSION }}
+          ```
+          
+          ### 🏗️ Docker Compose Example
+          ```yaml
+          version: '3.8'
+          services:
+            api:
+              image: ghcr.io/${{ github.repository_owner }}/gonews:${{ steps.version.outputs.VERSION }}
+              ports:
+                - "8080:8080"
+              environment:
+                - DATABASE_URL=your_db_url
+                
+            worker:
+              image: ghcr.io/${{ github.repository_owner }}/gonews-worker:${{ steps.version.outputs.VERSION }}
+              environment:
+                - DATABASE_URL=your_db_url
+                - QUEUE_URL=your_queue_url
           ```
           
           ### Multi-platform Support
@@ -186,5 +245,6 @@ jobs:
           generate_release_notes: true
           files: |
             bin/news-api
+            bin/news-worker
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

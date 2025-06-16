@@ -813,6 +813,26 @@ definitions:
       likes:
         type: integer
     type: object
+  models.AITranslationRequest:
+    properties:
+      entity_id:
+        type: integer
+      entity_type:
+        type: string
+      priority:
+        description: 1=low, 2=normal, 3=high
+        type: integer
+      source_language:
+        type: string
+      target_languages:
+        items:
+          type: string
+        type: array
+    required:
+    - entity_id
+    - entity_type
+    - target_languages
+    type: object
   models.AgentTaskResponse:
     properties:
       completed_at:
@@ -971,6 +991,31 @@ definitions:
       settings:
         description: JSON for block-specific settings
         type: object
+      translations:
+        items:
+          $ref: '#/definitions/models.ArticleContentBlockTranslation'
+        type: array
+      updated_at:
+        type: string
+    type: object
+  models.ArticleContentBlockTranslation:
+    properties:
+      block:
+        allOf:
+        - $ref: '#/definitions/models.ArticleContentBlock'
+        description: Relations
+      block_id:
+        type: integer
+      content:
+        type: string
+      created_at:
+        type: string
+      id:
+        type: integer
+      is_active:
+        type: boolean
+      language:
+        type: string
       updated_at:
         type: string
     type: object
@@ -1827,6 +1872,10 @@ definitions:
         type: string
       title:
         type: string
+      translations:
+        items:
+          $ref: '#/definitions/models.PageTranslation'
+        type: array
       updated_at:
         type: string
       views:
@@ -1884,6 +1933,60 @@ definitions:
       styles:
         description: Custom CSS styles
         type: object
+      translations:
+        items:
+          $ref: '#/definitions/models.PageContentBlockTranslation'
+        type: array
+      updated_at:
+        type: string
+    type: object
+  models.PageContentBlockTranslation:
+    properties:
+      block:
+        allOf:
+        - $ref: '#/definitions/models.PageContentBlock'
+        description: Relations
+      block_id:
+        type: integer
+      content:
+        type: string
+      created_at:
+        type: string
+      id:
+        type: integer
+      is_active:
+        type: boolean
+      language:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  models.PageTranslation:
+    properties:
+      created_at:
+        type: string
+      excerpt_text:
+        type: string
+      id:
+        type: integer
+      is_active:
+        type: boolean
+      language:
+        type: string
+      meta_description:
+        type: string
+      meta_title:
+        type: string
+      page:
+        allOf:
+        - $ref: '#/definitions/models.Page'
+        description: Relations
+      page_id:
+        type: integer
+      slug:
+        type: string
+      title:
+        type: string
       updated_at:
         type: string
     type: object
@@ -2164,6 +2267,17 @@ definitions:
       word_count:
         type: integer
     type: object
+  models.SupportedLanguagesResponse:
+    properties:
+      ai_translation_enabled:
+        type: boolean
+      default_language:
+        type: string
+      supported_languages:
+        items:
+          type: string
+        type: array
+    type: object
   models.Tag:
     properties:
       articles:
@@ -2197,6 +2311,31 @@ definitions:
       relevance:
         description: high, medium, low
         type: string
+    type: object
+  models.TranslationJobResponse:
+    properties:
+      completed_at:
+        type: string
+      created_at:
+        type: string
+      entity_id:
+        type: integer
+      entity_type:
+        type: string
+      error:
+        type: string
+      job_id:
+        type: string
+      message:
+        type: string
+      progress:
+        type: integer
+      status:
+        type: string
+      target_languages:
+        items:
+          type: string
+        type: array
     type: object
   models.TranslationProgress:
     properties:
@@ -2256,6 +2395,15 @@ definitions:
         type: integer
       total_translations:
         type: integer
+    type: object
+  models.UITranslationResponse:
+    properties:
+      language:
+        type: string
+      message_id:
+        type: string
+      translation:
+        type: string
     type: object
   models.UpdateAgentTaskRequest:
     properties:
@@ -2983,6 +3131,17 @@ definitions:
       template:
         type: string
       title:
+        type: string
+    type: object
+  version.VersionInfo:
+    properties:
+      build_time:
+        type: string
+      git_commit:
+        type: string
+      go_version:
+        type: string
+      version:
         type: string
     type: object
 host: localhost:8080
@@ -7923,6 +8082,161 @@ paths:
       summary: Get a page by slug
       tags:
       - Pages
+  /api/translations/ai:
+    post:
+      consumes:
+      - application/json
+      description: Request AI-powered translation for content
+      parameters:
+      - description: AI translation request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.AITranslationRequest'
+      produces:
+      - application/json
+      responses:
+        "202":
+          description: Accepted
+          schema:
+            $ref: '#/definitions/models.TranslationJobResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - Bearer: []
+      summary: Request AI translation
+      tags:
+      - Translation
+  /api/translations/content/{entity_type}/{entity_id}/{language}:
+    get:
+      consumes:
+      - application/json
+      description: Translate dynamic content (article, category, tag, etc.) to specified
+        language
+      parameters:
+      - description: Entity type (article, category, tag, menu)
+        in: path
+        name: entity_type
+        required: true
+        type: string
+      - description: Entity ID
+        in: path
+        name: entity_id
+        required: true
+        type: integer
+      - description: Target language code
+        in: path
+        name: language
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema: {}
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: Translate dynamic content
+      tags:
+      - Translation
+  /api/translations/languages:
+    get:
+      description: Get list of supported languages for the application
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.SupportedLanguagesResponse'
+      summary: Get supported languages
+      tags:
+      - Translation
+  /api/translations/status/{job_id}:
+    get:
+      description: Get status of a translation job
+      parameters:
+      - description: Translation job ID
+        in: path
+        name: job_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.TranslationJobResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: Get translation job status
+      tags:
+      - Translation
+  /api/translations/ui/{language}:
+    post:
+      consumes:
+      - application/json
+      description: Translate a UI message to specified language
+      parameters:
+      - description: Target language code (e.g., 'en', 'tr', 'es')
+        in: path
+        name: language
+        required: true
+        type: string
+      - description: Message ID to translate
+        in: query
+        name: message_id
+        required: true
+        type: string
+      - description: Template data for message interpolation
+        in: body
+        name: template_data
+        schema:
+          additionalProperties: true
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.UITranslationResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: Translate UI message
+      tags:
+      - Translation
   /api/user/interactions:
     get:
       description: Get paginated list of user's interactions with articles
@@ -10290,6 +10604,19 @@ paths:
       summary: Get users followed by user
       tags:
       - Social
+  /version:
+    get:
+      description: Get current API version, build time, and git commit
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/version.VersionInfo'
+      summary: Get API version information
+      tags:
+      - System
 securityDefinitions:
   BearerAuth:
     in: header

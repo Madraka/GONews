@@ -7707,6 +7707,240 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/translations/ai": {
+            "post": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Request AI-powered translation for content",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Translation"
+                ],
+                "summary": "Request AI translation",
+                "parameters": [
+                    {
+                        "description": "AI translation request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.AITranslationRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "202": {
+                        "description": "Accepted",
+                        "schema": {
+                            "$ref": "#/definitions/models.TranslationJobResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/translations/content/{entity_type}/{entity_id}/{language}": {
+            "get": {
+                "description": "Translate dynamic content (article, category, tag, etc.) to specified language",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Translation"
+                ],
+                "summary": "Translate dynamic content",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Entity type (article, category, tag, menu)",
+                        "name": "entity_type",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Entity ID",
+                        "name": "entity_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Target language code",
+                        "name": "language",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {}
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/translations/languages": {
+            "get": {
+                "description": "Get list of supported languages for the application",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Translation"
+                ],
+                "summary": "Get supported languages",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.SupportedLanguagesResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/translations/status/{job_id}": {
+            "get": {
+                "description": "Get status of a translation job",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Translation"
+                ],
+                "summary": "Get translation job status",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Translation job ID",
+                        "name": "job_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.TranslationJobResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/translations/ui/{language}": {
+            "post": {
+                "description": "Translate a UI message to specified language",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Translation"
+                ],
+                "summary": "Translate UI message",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Target language code (e.g., 'en', 'tr', 'es')",
+                        "name": "language",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Message ID to translate",
+                        "name": "message_id",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "description": "Template data for message interpolation",
+                        "name": "template_data",
+                        "in": "body",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.UITranslationResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/api/user/interactions": {
             "get": {
                 "security": [
@@ -11327,6 +11561,26 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/version": {
+            "get": {
+                "description": "Get current API version, build time, and git commit",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "System"
+                ],
+                "summary": "Get API version information",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/version.VersionInfo"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
@@ -12535,6 +12789,35 @@ const docTemplate = `{
                 }
             }
         },
+        "models.AITranslationRequest": {
+            "type": "object",
+            "required": [
+                "entity_id",
+                "entity_type",
+                "target_languages"
+            ],
+            "properties": {
+                "entity_id": {
+                    "type": "integer"
+                },
+                "entity_type": {
+                    "type": "string"
+                },
+                "priority": {
+                    "description": "1=low, 2=normal, 3=high",
+                    "type": "integer"
+                },
+                "source_language": {
+                    "type": "string"
+                },
+                "target_languages": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
         "models.AgentTaskResponse": {
             "type": "object",
             "properties": {
@@ -12770,6 +13053,46 @@ const docTemplate = `{
                 "settings": {
                     "description": "JSON for block-specific settings",
                     "type": "object"
+                },
+                "translations": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.ArticleContentBlockTranslation"
+                    }
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.ArticleContentBlockTranslation": {
+            "type": "object",
+            "properties": {
+                "block": {
+                    "description": "Relations",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/models.ArticleContentBlock"
+                        }
+                    ]
+                },
+                "block_id": {
+                    "type": "integer"
+                },
+                "content": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "is_active": {
+                    "type": "boolean"
+                },
+                "language": {
+                    "type": "string"
                 },
                 "updated_at": {
                     "type": "string"
@@ -14077,6 +14400,12 @@ const docTemplate = `{
                 "title": {
                     "type": "string"
                 },
+                "translations": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.PageTranslation"
+                    }
+                },
                 "updated_at": {
                     "type": "string"
                 },
@@ -14160,6 +14489,92 @@ const docTemplate = `{
                 "styles": {
                     "description": "Custom CSS styles",
                     "type": "object"
+                },
+                "translations": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.PageContentBlockTranslation"
+                    }
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.PageContentBlockTranslation": {
+            "type": "object",
+            "properties": {
+                "block": {
+                    "description": "Relations",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/models.PageContentBlock"
+                        }
+                    ]
+                },
+                "block_id": {
+                    "type": "integer"
+                },
+                "content": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "is_active": {
+                    "type": "boolean"
+                },
+                "language": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.PageTranslation": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "excerpt_text": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "is_active": {
+                    "type": "boolean"
+                },
+                "language": {
+                    "type": "string"
+                },
+                "meta_description": {
+                    "type": "string"
+                },
+                "meta_title": {
+                    "type": "string"
+                },
+                "page": {
+                    "description": "Relations",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/models.Page"
+                        }
+                    ]
+                },
+                "page_id": {
+                    "type": "integer"
+                },
+                "slug": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
                 },
                 "updated_at": {
                     "type": "string"
@@ -14588,6 +15003,23 @@ const docTemplate = `{
                 }
             }
         },
+        "models.SupportedLanguagesResponse": {
+            "type": "object",
+            "properties": {
+                "ai_translation_enabled": {
+                    "type": "boolean"
+                },
+                "default_language": {
+                    "type": "string"
+                },
+                "supported_languages": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
         "models.Tag": {
             "type": "object",
             "properties": {
@@ -14636,6 +15068,44 @@ const docTemplate = `{
                 "relevance": {
                     "description": "high, medium, low",
                     "type": "string"
+                }
+            }
+        },
+        "models.TranslationJobResponse": {
+            "type": "object",
+            "properties": {
+                "completed_at": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "entity_id": {
+                    "type": "integer"
+                },
+                "entity_type": {
+                    "type": "string"
+                },
+                "error": {
+                    "type": "string"
+                },
+                "job_id": {
+                    "type": "string"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "progress": {
+                    "type": "integer"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "target_languages": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
                 }
             }
         },
@@ -14726,6 +15196,20 @@ const docTemplate = `{
                 },
                 "total_translations": {
                     "type": "integer"
+                }
+            }
+        },
+        "models.UITranslationResponse": {
+            "type": "object",
+            "properties": {
+                "language": {
+                    "type": "string"
+                },
+                "message_id": {
+                    "type": "string"
+                },
+                "translation": {
+                    "type": "string"
                 }
             }
         },
@@ -15794,6 +16278,23 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "title": {
+                    "type": "string"
+                }
+            }
+        },
+        "version.VersionInfo": {
+            "type": "object",
+            "properties": {
+                "build_time": {
+                    "type": "string"
+                },
+                "git_commit": {
+                    "type": "string"
+                },
+                "go_version": {
+                    "type": "string"
+                },
+                "version": {
                     "type": "string"
                 }
             }

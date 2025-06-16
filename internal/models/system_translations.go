@@ -233,3 +233,88 @@ type BulkTranslationResponse struct {
 	EstimatedTime string `json:"estimated_time"`
 	JobIDs        []uint `json:"job_ids"`
 }
+
+// PageTranslation represents translated content for pages
+type PageTranslation struct {
+	ID          uint           `gorm:"primaryKey" json:"id"`
+	PageID      uint           `gorm:"not null;index" json:"page_id"`
+	Language    string         `gorm:"size:5;not null;index" json:"language"`
+	Title       string         `gorm:"size:255;not null" json:"title"`
+	Slug        string         `gorm:"size:255;not null;index" json:"slug"`
+	MetaTitle   string         `gorm:"size:255" json:"meta_title"`
+	MetaDesc    string         `gorm:"size:255" json:"meta_description"`
+	ExcerptText string         `gorm:"type:text" json:"excerpt_text"`
+	IsActive    bool           `gorm:"default:true" json:"is_active"`
+	CreatedAt   time.Time      `gorm:"autoCreateTime" json:"created_at"`
+	UpdatedAt   time.Time      `gorm:"autoUpdateTime" json:"updated_at"`
+	DeletedAt   gorm.DeletedAt `gorm:"index" json:"-"`
+
+	// Relations
+	Page Page `gorm:"foreignKey:PageID" json:"page,omitempty"`
+}
+
+// TableName specifies the table name for PageTranslation
+func (PageTranslation) TableName() string {
+	return "page_translations"
+}
+
+// LocalizedPage represents a page with localized content
+type LocalizedPage struct {
+	ID              uint       `json:"id"`
+	Title           string     `json:"title"`
+	Slug            string     `json:"slug"`
+	MetaTitle       string     `json:"meta_title"`
+	MetaDescription string     `json:"meta_description"`
+	ExcerptText     string     `json:"excerpt_text"`
+	Template        string     `json:"template"`
+	Layout          string     `json:"layout"`
+	Status          string     `json:"status"`
+	FeaturedImage   string     `json:"featured_image"`
+	Language        string     `json:"language"`
+	IsHomepage      bool       `json:"is_homepage"`
+	IsLandingPage   bool       `json:"is_landing_page"`
+	Views           int        `json:"views"`
+	PublishedAt     *time.Time `json:"published_at"`
+	CreatedAt       time.Time  `json:"created_at"`
+	UpdatedAt       time.Time  `json:"updated_at"`
+}
+
+// PageContentBlockTranslation represents translated content for page content blocks
+type PageContentBlockTranslation struct {
+	ID        uint           `gorm:"primaryKey" json:"id"`
+	BlockID   uint           `gorm:"not null;index" json:"block_id"`
+	Language  string         `gorm:"size:5;not null;index" json:"language"`
+	Content   string         `gorm:"type:text" json:"content"`
+	IsActive  bool           `gorm:"default:true" json:"is_active"`
+	CreatedAt time.Time      `gorm:"autoCreateTime" json:"created_at"`
+	UpdatedAt time.Time      `gorm:"autoUpdateTime" json:"updated_at"`
+	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
+
+	// Relations
+	Block PageContentBlock `gorm:"foreignKey:BlockID" json:"block,omitempty"`
+}
+
+// TableName specifies the table name for PageContentBlockTranslation
+func (PageContentBlockTranslation) TableName() string {
+	return "page_content_block_translations"
+}
+
+// ArticleContentBlockTranslation represents translated content for article content blocks
+type ArticleContentBlockTranslation struct {
+	ID        uint           `gorm:"primaryKey" json:"id"`
+	BlockID   uint           `gorm:"not null;index" json:"block_id"`
+	Language  string         `gorm:"size:5;not null;index" json:"language"`
+	Content   string         `gorm:"type:text" json:"content"`
+	IsActive  bool           `gorm:"default:true" json:"is_active"`
+	CreatedAt time.Time      `gorm:"autoCreateTime" json:"created_at"`
+	UpdatedAt time.Time      `gorm:"autoUpdateTime" json:"updated_at"`
+	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
+
+	// Relations
+	Block ArticleContentBlock `gorm:"foreignKey:BlockID" json:"block,omitempty"`
+}
+
+// TableName specifies the table name for ArticleContentBlockTranslation
+func (ArticleContentBlockTranslation) TableName() string {
+	return "article_content_block_translations"
+}

@@ -21,7 +21,8 @@ type ArticleContentBlock struct {
 	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
 
 	// Relations
-	Article Article `gorm:"foreignKey:ArticleID" json:"article,omitempty"`
+	Article      Article                          `gorm:"foreignKey:ArticleID" json:"article,omitempty"`
+	Translations []ArticleContentBlockTranslation `gorm:"foreignKey:BlockID" json:"translations,omitempty"`
 }
 
 // ArticleContentBlockSettings represents different settings for various block types

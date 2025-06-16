@@ -148,8 +148,9 @@ func (r *ArticleTranslationRepository) DeleteTranslation(id uint) error {
 func (r *ArticleTranslationRepository) GetLocalizedArticle(articleID uint, language string) (*models.LocalizedArticle, error) {
 	var article models.Article
 
-	// First get the base article
+	// First get the base article with all necessary relations
 	err := r.db.Preload("Author").Preload("Categories").Preload("Tags").
+		Preload("ContentBlocks").
 		First(&article, articleID).Error
 	if err != nil {
 		return nil, err
@@ -319,8 +320,9 @@ func (r *ArticleTranslationRepository) GetLocalizedArticlesPaginated(language st
 func (r *ArticleTranslationRepository) GetArticleWithTranslations(articleID uint) (*models.ArticleWithTranslations, error) {
 	var article models.Article
 
-	// Get the base article
+	// Get the base article with all necessary relations
 	err := r.db.Preload("Author").Preload("Categories").Preload("Tags").
+		Preload("ContentBlocks").
 		First(&article, articleID).Error
 	if err != nil {
 		return nil, err

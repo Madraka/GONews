@@ -34,7 +34,7 @@ func InitI18nService(localesPath string) error {
 	once.Do(func() {
 		globalI18n = &I18nService{
 			translations: make(map[string]map[string]interface{}),
-			defaultLang:  "en",
+			defaultLang:  "en", // Standardized to English
 		}
 		err = globalI18n.LoadTranslations(localesPath)
 	})

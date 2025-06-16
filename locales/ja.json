@@ -1,0 +1,58 @@
+{
+  "errors": {
+    "general": {
+      "database_error": "データベースエラーが発生しました。後でもう一度お試しください。",
+      "bad_request": "無効なリクエストです。入力内容を確認して、もう一度お試しください。",
+      "search_failed": "検索操作に失敗しました。もう一度お試しください。"
+    },
+    "validation": {
+      "invalid_id": "無効なIDが提供されました。",
+      "invalid_payload": "無効なリクエストデータが提供されました。",
+      "language_required": "言語パラメータが必要です。",
+      "search_query_required": "検索クエリが必要です。"
+    },
+    "auth": {
+      "not_authenticated": "認証が必要です。ログインしてください。",
+      "invalid_user": "無効なユーザー資格情報または権限です。"
+    },
+    "articles": {
+      "not_found": "記事が見つかりません。"
+    },
+    "translations": {
+      "already_exists": "この言語の翻訳は既に存在します：{{.Language}}。",
+      "create_failed": "翻訳の作成に失敗しました。",
+      "not_found": "翻訳が見つかりません。",
+      "update_failed": "翻訳の更新に失敗しました。",
+      "delete_failed": "翻訳の削除に失敗しました。"
+    }
+  },
+  "success": {
+    "translations": {
+      "created": "言語の翻訳が正常に作成されました：{{.Language}}。",
+      "updated": "言語の翻訳が正常に更新されました：{{.Language}}。",
+      "deleted": "言語の翻訳が正常に削除されました：{{.Language}}。"
+    }
+  },
+  "notifications": {
+    "welcome": {
+      "title": "ようこそ！",
+      "message": "私たちのニュースプラットフォームへようこそ、{{.UserName}}さん！"
+    },
+    "breaking_news": {
+      "title": "速報",
+      "message": "重要なニュース更新：{{.Title}}"
+    },
+    "article_published": {
+      "title": "記事が公開されました",
+      "message": "あなたの記事「{{.Title}}」が正常に公開されました。"
+    },
+    "comment_reply": {
+      "title": "新しい返信",
+      "message": "{{.UserName}}さんが「{{.ArticleTitle}}」のあなたのコメントに返信しました。"
+    },
+    "system_maintenance": {
+      "title": "システムメンテナンス",
+      "message": "{{.StartTime}}から{{.EndTime}}までシステムメンテナンスが予定されています。"
+    }
+  }
+}

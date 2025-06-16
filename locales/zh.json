@@ -1,0 +1,58 @@
+{
+  "errors": {
+    "general": {
+      "database_error": "发生数据库错误。请稍后重试。",
+      "bad_request": "请求无效。请检查您的输入并重试。",
+      "search_failed": "搜索操作失败。请重试。"
+    },
+    "validation": {
+      "invalid_id": "提供的ID无效。",
+      "invalid_payload": "提供的请求数据无效。",
+      "language_required": "语言参数是必需的。",
+      "search_query_required": "搜索查询是必需的。"
+    },
+    "auth": {
+      "not_authenticated": "需要身份验证。请登录。",
+      "invalid_user": "用户凭据或权限无效。"
+    },
+    "articles": {
+      "not_found": "未找到文章。"
+    },
+    "translations": {
+      "already_exists": "该语言的翻译已存在：{{.Language}}。",
+      "create_failed": "创建翻译失败。",
+      "not_found": "未找到翻译。",
+      "update_failed": "更新翻译失败。",
+      "delete_failed": "删除翻译失败。"
+    }
+  },
+  "success": {
+    "translations": {
+      "created": "成功为语言创建翻译：{{.Language}}。",
+      "updated": "成功为语言更新翻译：{{.Language}}。",
+      "deleted": "成功为语言删除翻译：{{.Language}}。"
+    }
+  },
+  "notifications": {
+    "welcome": {
+      "title": "欢迎！",
+      "message": "欢迎来到我们的新闻平台，{{.UserName}}！"
+    },
+    "breaking_news": {
+      "title": "突发新闻",
+      "message": "重要新闻更新：{{.Title}}"
+    },
+    "article_published": {
+      "title": "文章已发布",
+      "message": "您的文章'{{.Title}}'已成功发布。"
+    },
+    "comment_reply": {
+      "title": "新回复",
+      "message": "{{.UserName}}回复了您在'{{.ArticleTitle}}'上的评论。"
+    },
+    "system_maintenance": {
+      "title": "系统维护",
+      "message": "系统维护计划从{{.StartTime}}到{{.EndTime}}。"
+    }
+  }
+}

@@ -1,0 +1,58 @@
+{
+  "errors": {
+    "general": {
+      "database_error": "Ein Datenbankfehler ist aufgetreten. Bitte versuchen Sie es später erneut.",
+      "bad_request": "Ungültige Anfrage. Bitte überprüfen Sie Ihre Eingabe und versuchen Sie es erneut.",
+      "search_failed": "Suchvorgang fehlgeschlagen. Bitte versuchen Sie es erneut."
+    },
+    "validation": {
+      "invalid_id": "Ungültige ID bereitgestellt.",
+      "invalid_payload": "Ungültige Anfragedaten bereitgestellt.",
+      "language_required": "Sprachparameter ist erforderlich.",
+      "search_query_required": "Suchanfrage ist erforderlich."
+    },
+    "auth": {
+      "not_authenticated": "Authentifizierung erforderlich. Bitte melden Sie sich an.",
+      "invalid_user": "Ungültige Benutzeranmeldedaten oder Berechtigungen."
+    },
+    "articles": {
+      "not_found": "Artikel nicht gefunden."
+    },
+    "translations": {
+      "already_exists": "Übersetzung existiert bereits für diese Sprache: {{.Language}}.",
+      "create_failed": "Übersetzung konnte nicht erstellt werden.",
+      "not_found": "Übersetzung nicht gefunden.",
+      "update_failed": "Übersetzung konnte nicht aktualisiert werden.",
+      "delete_failed": "Übersetzung konnte nicht gelöscht werden."
+    }
+  },
+  "success": {
+    "translations": {
+      "created": "Übersetzung erfolgreich erstellt für Sprache: {{.Language}}.",
+      "updated": "Übersetzung erfolgreich aktualisiert für Sprache: {{.Language}}.",
+      "deleted": "Übersetzung erfolgreich gelöscht für Sprache: {{.Language}}."
+    }
+  },
+  "notifications": {
+    "welcome": {
+      "title": "Willkommen!",
+      "message": "Willkommen auf unserer Nachrichtenplattform, {{.UserName}}!"
+    },
+    "breaking_news": {
+      "title": "Eilmeldung",
+      "message": "Wichtige Nachrichten-Update: {{.Title}}"
+    },
+    "article_published": {
+      "title": "Artikel Veröffentlicht",
+      "message": "Ihr Artikel '{{.Title}}' wurde erfolgreich veröffentlicht."
+    },
+    "comment_reply": {
+      "title": "Neue Antwort",
+      "message": "{{.UserName}} hat auf Ihren Kommentar zu '{{.ArticleTitle}}' geantwortet."
+    },
+    "system_maintenance": {
+      "title": "Systemwartung",
+      "message": "Systemwartung geplant von {{.StartTime}} bis {{.EndTime}}."
+    }
+  }
+}

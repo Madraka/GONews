@@ -192,17 +192,38 @@ func main() {
 	repositories.InitializeArticleContentBlockRepository()
 	logger.Debug("Article content block repository initialized")
 
-	// Initialize translation service
+	// Initialize translation service (keep existing working system)
 	logger.Info("Initializing translation service")
 	sqlDB, err := database.DB.DB()
 	if err != nil {
 		logger.Fatal("Failed to get SQL DB from GORM", err)
 	}
+
+	// Keep the original working TranslationService
 	translationService, err := services.NewTranslationService(sqlDB, "./locales")
 	if err != nil {
 		logger.Fatal("Failed to initialize translation service", err)
 	}
-	logger.Debug("Translation service initialized")
+
+	// Also initialize UnifiedTranslationService for new features (parallel)
+	unifiedTranslationService, err := services.NewUnifiedTranslationService(sqlDB, "./locales")
+	if err != nil {
+		logger.Error("Failed to initialize unified translation service", err)
+		// Don't fail completely, just log the error
+	} else {
+		// Set global unified translation service for new handlers
+		services.SetGlobalUnifiedTranslationService(unifiedTranslationService)
+	}
+
+	// Initialize legacy I18nService for backward compatibility
+	if err := services.InitI18nService("./locales"); err != nil {
+		logger.Error("Failed to initialize legacy I18n service", err)
+	}
+
+	logger.Debug("Translation services initialized")
+
+	// Set global unified translation service
+	services.SetGlobalUnifiedTranslationService(unifiedTranslationService)
 
 	// Initialize AI service for video processing
 	logger.Info("Initializing AI service for video processing")
@@ -237,7 +258,7 @@ func main() {
 		logger.Debug("Video processing service initialized and queue worker started")
 	}
 
-	// Initialize Redis pub/sub notification system with translation service
+	// Initialize Redis pub/sub notification system with translation service (original working system)
 	logger.Info("Initializing Redis pub/sub notification system")
 	if err := pubsub.InitNotificationHub(translationService); err != nil {
 		logger.Error("Failed to initialize notification hub", err)
@@ -315,7 +336,7 @@ func main() {
 	// Configure additional Gin settings for high performance
 	r.MaxMultipartMemory = 16 << 20 // 16 MiB for file uploads (increased for higher throughput)
 
-	// Add i18n middleware before other middlewares
+	// Add i18n middleware before other middlewares (use original working system)
 	r.Use(middleware.I18nMiddleware(translationService.GetBundle()))
 
 	// Add Prometheus metrics middleware

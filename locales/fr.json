@@ -1,0 +1,58 @@
+{
+  "errors": {
+    "general": {
+      "database_error": "Une erreur de base de données s'est produite. Veuillez réessayer plus tard.",
+      "bad_request": "Requête invalide. Veuillez vérifier votre saisie et réessayer.",
+      "search_failed": "L'opération de recherche a échoué. Veuillez réessayer."
+    },
+    "validation": {
+      "invalid_id": "ID invalide fourni.",
+      "invalid_payload": "Données de requête invalides fournies.",
+      "language_required": "Le paramètre de langue est requis.",
+      "search_query_required": "La requête de recherche est requise."
+    },
+    "auth": {
+      "not_authenticated": "Authentification requise. Veuillez vous connecter.",
+      "invalid_user": "Identifiants utilisateur ou permissions invalides."
+    },
+    "articles": {
+      "not_found": "Article non trouvé."
+    },
+    "translations": {
+      "already_exists": "La traduction existe déjà pour cette langue : {{.Language}}.",
+      "create_failed": "Échec de la création de la traduction.",
+      "not_found": "Traduction non trouvée.",
+      "update_failed": "Échec de la mise à jour de la traduction.",
+      "delete_failed": "Échec de la suppression de la traduction."
+    }
+  },
+  "success": {
+    "translations": {
+      "created": "Traduction créée avec succès pour la langue : {{.Language}}.",
+      "updated": "Traduction mise à jour avec succès pour la langue : {{.Language}}.",
+      "deleted": "Traduction supprimée avec succès pour la langue : {{.Language}}."
+    }
+  },
+  "notifications": {
+    "welcome": {
+      "title": "Bienvenue !",
+      "message": "Bienvenue sur notre plateforme d'actualités, {{.UserName}} !"
+    },
+    "breaking_news": {
+      "title": "Dernière Minute",
+      "message": "Mise à jour importante des actualités : {{.Title}}"
+    },
+    "article_published": {
+      "title": "Article Publié",
+      "message": "Votre article '{{.Title}}' a été publié avec succès."
+    },
+    "comment_reply": {
+      "title": "Nouvelle Réponse",
+      "message": "{{.UserName}} a répondu à votre commentaire sur '{{.ArticleTitle}}'."
+    },
+    "system_maintenance": {
+      "title": "Maintenance Système",
+      "message": "Maintenance système prévue de {{.StartTime}} à {{.EndTime}}."
+    }
+  }
+}

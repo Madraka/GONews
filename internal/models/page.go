@@ -54,6 +54,7 @@ type Page struct {
 	Parent        *Page              `gorm:"foreignKey:ParentID" json:"parent,omitempty"`
 	Children      []Page             `gorm:"foreignKey:ParentID" json:"children,omitempty"`
 	ContentBlocks []PageContentBlock `gorm:"foreignKey:PageID;orderBy:position ASC" json:"content_blocks,omitempty"`
+	Translations  []PageTranslation  `gorm:"foreignKey:PageID" json:"translations,omitempty"`
 }
 
 // PageSEOSettings represents SEO-specific settings for a page
@@ -117,9 +118,10 @@ type PageContentBlock struct {
 	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
 
 	// Relations
-	Page        Page               `gorm:"foreignKey:PageID" json:"page,omitempty"`
-	Container   *PageContentBlock  `gorm:"foreignKey:ContainerID" json:"container,omitempty"`
-	ChildBlocks []PageContentBlock `gorm:"foreignKey:ContainerID" json:"child_blocks,omitempty"`
+	Page         Page                          `gorm:"foreignKey:PageID" json:"page,omitempty"`
+	Container    *PageContentBlock             `gorm:"foreignKey:ContainerID" json:"container,omitempty"`
+	ChildBlocks  []PageContentBlock            `gorm:"foreignKey:ContainerID" json:"child_blocks,omitempty"`
+	Translations []PageContentBlockTranslation `gorm:"foreignKey:BlockID" json:"translations,omitempty"`
 }
 
 // PageTemplate represents reusable page templates

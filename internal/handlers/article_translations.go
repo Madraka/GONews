@@ -8,6 +8,7 @@ import (
 	"news/internal/database"
 	"news/internal/models"
 	"news/internal/repositories"
+	"news/internal/services"
 
 	"github.com/gin-gonic/gin"
 	"github.com/nicksnyder/go-i18n/v2/i18n"
@@ -15,12 +16,14 @@ import (
 )
 
 type ArticleTranslationHandlers struct {
-	repo *repositories.ArticleTranslationRepository
+	repo               *repositories.ArticleTranslationRepository
+	translationService *services.UnifiedTranslationService
 }
 
 func NewArticleTranslationHandlers() *ArticleTranslationHandlers {
 	return &ArticleTranslationHandlers{
-		repo: repositories.NewArticleTranslationRepository(database.DB),
+		repo:               repositories.NewArticleTranslationRepository(database.DB),
+		translationService: services.GetUnifiedTranslationService(),
 	}
 }
 
@@ -561,8 +564,20 @@ func (h *ArticleTranslationHandlers) GetTranslationStats(c *gin.Context) {
 
 // Helper functions
 
-// getLocalizedMessage gets a localized message with fallback to English
+// getLocalizedMessage gets a localized message with fallback to English using unified translation service
 func (h *ArticleTranslationHandlers) getLocalizedMessage(localizer *i18n.Localizer, messageID string, templateData map[string]interface{}) string {
+	// Try to get language from the localizer context
+	language := "en" // default fallback
+
+	// If unified translation service is available, use it
+	if h.translationService != nil {
+		translatedMessage, err := h.translationService.TranslateUI(language, messageID, templateData)
+		if err == nil {
+			return translatedMessage
+		}
+	}
+
+	// Fallback to original localizer method
 	config := &i18n.LocalizeConfig{
 		MessageID:    messageID,
 		TemplateData: templateData,

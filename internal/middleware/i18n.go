@@ -17,7 +17,8 @@ const (
 )
 
 // SupportedLanguages defines the languages supported by the application
-var SupportedLanguages = []string{"en", "tr", "es"}
+// Order matters: first is default, others are alternatives
+var SupportedLanguages = []string{"en", "tr", "es", "fr", "de", "ar", "zh", "ru", "ja", "ko"}
 
 // I18nMiddleware creates middleware for internationalization
 func I18nMiddleware(bundle *i18n.Bundle) gin.HandlerFunc {

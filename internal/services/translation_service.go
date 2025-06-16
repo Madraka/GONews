@@ -35,6 +35,7 @@ func NewAITranslationService(aiService *AIService) *AITranslationService {
 // TranslateCategory translates a category to target languages
 func (ts *AITranslationService) TranslateCategory(categoryID uint, targetLanguages []string) error {
 	var category models.Category
+	// Load category with any necessary relations
 	if err := ts.db.First(&category, categoryID).Error; err != nil {
 		return fmt.Errorf("category not found: %w", err)
 	}
@@ -217,6 +218,158 @@ func (ts *AITranslationService) TranslateNotification(notificationID uint, targe
 	return nil
 }
 
+// TranslatePage translates pages
+func (ts *AITranslationService) TranslatePage(pageID uint, targetLanguages []string) error {
+	var page models.Page
+	// Load page with content blocks to avoid N+1
+	if err := ts.db.Preload("ContentBlocks").First(&page, pageID).Error; err != nil {
+		return fmt.Errorf("page not found: %w", err)
+	}
+
+	for _, targetLang := range targetLanguages {
+		var existing models.PageTranslation
+		if err := ts.db.Where("page_id = ? AND language = ?", pageID, targetLang).
+			First(&existing).Error; err == nil {
+			continue
+		}
+
+		// Translate title
+		translatedTitle, err := ts.aiService.TranslateText(context.Background(), page.Title, page.Language, targetLang)
+		if err != nil {
+			log.Printf("Failed to translate page title: %v", err)
+			continue
+		}
+
+		// Translate slug (make it URL-friendly)
+		translatedSlug := strings.ToLower(strings.ReplaceAll(translatedTitle, " ", "-"))
+		translatedSlug = strings.ReplaceAll(translatedSlug, "--", "-")
+
+		// Translate meta title if exists
+		var translatedMetaTitle string
+		if page.MetaTitle != "" {
+			translatedMetaTitle, err = ts.aiService.TranslateText(context.Background(), page.MetaTitle, page.Language, targetLang)
+			if err != nil {
+				log.Printf("Failed to translate page meta title: %v", err)
+				translatedMetaTitle = translatedTitle // fallback
+			}
+		}
+
+		// Translate meta description if exists
+		var translatedMetaDesc string
+		if page.MetaDesc != "" {
+			translatedMetaDesc, err = ts.aiService.TranslateText(context.Background(), page.MetaDesc, page.Language, targetLang)
+			if err != nil {
+				log.Printf("Failed to translate page meta description: %v", err)
+			}
+		}
+
+		// Translate excerpt if exists
+		var translatedExcerpt string
+		if page.ExcerptText != "" {
+			translatedExcerpt, err = ts.aiService.TranslateText(context.Background(), page.ExcerptText, page.Language, targetLang)
+			if err != nil {
+				log.Printf("Failed to translate page excerpt: %v", err)
+			}
+		}
+
+		translation := models.PageTranslation{
+			PageID:      pageID,
+			Language:    targetLang,
+			Title:       translatedTitle,
+			Slug:        translatedSlug,
+			MetaTitle:   translatedMetaTitle,
+			MetaDesc:    translatedMetaDesc,
+			ExcerptText: translatedExcerpt,
+		}
+
+		if err := ts.db.Create(&translation).Error; err != nil {
+			log.Printf("Failed to save page translation: %v", err)
+		}
+	}
+
+	return nil
+}
+
+// TranslatePageContentBlock translates page content blocks
+func (ts *AITranslationService) TranslatePageContentBlock(blockID uint, targetLanguages []string) error {
+	var block models.PageContentBlock
+	// Load page content block with page relation to avoid N+1
+	if err := ts.db.Preload("Page").First(&block, blockID).Error; err != nil {
+		return fmt.Errorf("page content block not found: %w", err)
+	}
+
+	for _, targetLang := range targetLanguages {
+		var existing models.PageContentBlockTranslation
+		if err := ts.db.Where("block_id = ? AND language = ?", blockID, targetLang).
+			First(&existing).Error; err == nil {
+			continue
+		}
+
+		// Translate content if it exists and is text-based
+		var translatedContent string
+		if block.Content != "" {
+			var err error
+			translatedContent, err = ts.aiService.TranslateText(context.Background(), block.Content, "tr", targetLang)
+			if err != nil {
+				log.Printf("Failed to translate page content block content: %v", err)
+				continue
+			}
+		}
+
+		translation := models.PageContentBlockTranslation{
+			BlockID:  blockID,
+			Language: targetLang,
+			Content:  translatedContent,
+		}
+
+		if err := ts.db.Create(&translation).Error; err != nil {
+			log.Printf("Failed to save page content block translation: %v", err)
+		}
+	}
+
+	return nil
+}
+
+// TranslateArticleContentBlock translates article content blocks
+func (ts *AITranslationService) TranslateArticleContentBlock(blockID uint, targetLanguages []string) error {
+	var block models.ArticleContentBlock
+	// Load article content block with article relation to avoid N+1
+	if err := ts.db.Preload("Article").First(&block, blockID).Error; err != nil {
+		return fmt.Errorf("article content block not found: %w", err)
+	}
+
+	for _, targetLang := range targetLanguages {
+		var existing models.ArticleContentBlockTranslation
+		if err := ts.db.Where("block_id = ? AND language = ?", blockID, targetLang).
+			First(&existing).Error; err == nil {
+			continue
+		}
+
+		// Translate content if it exists and is text-based
+		var translatedContent string
+		if block.Content != "" {
+			var err error
+			translatedContent, err = ts.aiService.TranslateText(context.Background(), block.Content, "tr", targetLang)
+			if err != nil {
+				log.Printf("Failed to translate article content block content: %v", err)
+				continue
+			}
+		}
+
+		translation := models.ArticleContentBlockTranslation{
+			BlockID:  blockID,
+			Language: targetLang,
+			Content:  translatedContent,
+		}
+
+		if err := ts.db.Create(&translation).Error; err != nil {
+			log.Printf("Failed to save article content block translation: %v", err)
+		}
+	}
+
+	return nil
+}
+
 // BulkTranslateAllContent translates all existing content
 func (ts *AITranslationService) BulkTranslateAllContent() error {
 	log.Println("Starting bulk translation of all content...")
@@ -249,6 +402,16 @@ func (ts *AITranslationService) BulkTranslateAllContent() error {
 			log.Printf("Failed to translate menu %d: %v", menu.ID, err)
 		}
 		time.Sleep(2 * time.Second)
+	}
+
+	// Translate all pages
+	var pages []models.Page
+	ts.db.Find(&pages)
+	for _, page := range pages {
+		if err := ts.TranslatePage(page.ID, ts.languages); err != nil {
+			log.Printf("Failed to translate page %d: %v", page.ID, err)
+		}
+		time.Sleep(1 * time.Second)
 	}
 
 	log.Println("Bulk translation completed!")
@@ -400,6 +563,8 @@ func (ts *AITranslationService) processTranslationJob(job models.TranslationQueu
 		err = ts.TranslateMenu(job.EntityID, []string{job.TargetLang})
 	case "notification":
 		err = ts.TranslateNotification(job.EntityID, []string{job.TargetLang})
+	case "page":
+		err = ts.TranslatePage(job.EntityID, []string{job.TargetLang})
 	default:
 		err = fmt.Errorf("unsupported entity type: %s", job.EntityType)
 	}
@@ -430,9 +595,10 @@ func (ts *AITranslationService) processTranslationJob(job models.TranslationQueu
 
 // processArticleTranslation handles article translation specifically
 func (ts *AITranslationService) processArticleTranslation(job models.TranslationQueue) error {
-	// Get the article
+	// Get the article with necessary relations
 	var article models.Article
-	if err := ts.db.First(&article, job.EntityID).Error; err != nil {
+	if err := ts.db.Preload("Author").Preload("Categories").Preload("Tags").
+		First(&article, job.EntityID).Error; err != nil {
 		return fmt.Errorf("article not found: %w", err)
 	}
 
@@ -491,9 +657,10 @@ func (ts *AITranslationService) processArticleTranslation(job models.Translation
 
 // TranslateArticle translates an article to target languages
 func (ts *AITranslationService) TranslateArticle(articleID uint, targetLanguages []string) error {
-	// Get the article
+	// Get the article with all necessary relations
 	var article models.Article
-	if err := ts.db.First(&article, articleID).Error; err != nil {
+	if err := ts.db.Preload("Author").Preload("Categories").Preload("Tags").
+		Preload("ContentBlocks").First(&article, articleID).Error; err != nil {
 		return fmt.Errorf("article not found: %w", err)
 	}
 
@@ -589,9 +756,9 @@ func (ts *AITranslationService) TranslateArticle(articleID uint, targetLanguages
 
 // QueueTranslationsForArticle creates translation jobs for all supported languages
 func (ts *AITranslationService) QueueTranslationsForArticle(articleID uint, requestedBy uint) error {
-	// Get the article to determine source language
+	// Get the article to determine source language (minimal load)
 	var article models.Article
-	if err := ts.db.First(&article, articleID).Error; err != nil {
+	if err := ts.db.Select("id, language").First(&article, articleID).Error; err != nil {
 		return fmt.Errorf("article not found: %v", err)
 	}
 

@@ -354,19 +354,27 @@ func RegisterRoutes(r *gin.Engine) {
 
 		// Article Translations (Public read with language support)
 		translationHandler := handlers.NewArticleTranslationHandlers()
-		api.GET("/v1/articles/localized", translationHandler.GetLocalizedArticles)           // Get localized articles
-		api.GET("/v1/articles/:id/localized", translationHandler.GetLocalizedArticle)        // Get localized article
-		api.GET("/v1/articles/:id/translations", translationHandler.GetArticleTranslations)  // Get all translations for article
-		api.GET("/v1/articles/search/localized", translationHandler.SearchLocalizedArticles) // Search localized articles
-		api.GET("/v1/translations/stats", translationHandler.GetTranslationStats)            // Get translation statistics
+		api.GET("/articles/localized", translationHandler.GetLocalizedArticles)           // Get localized articles
+		api.GET("/articles/:id/localized", translationHandler.GetLocalizedArticle)        // Get localized article
+		api.GET("/articles/:id/translations", translationHandler.GetArticleTranslations)  // Get all translations for article
+		api.GET("/articles/search/localized", translationHandler.SearchLocalizedArticles) // Search localized articles
+		api.GET("/translations/stats", translationHandler.GetTranslationStats)            // Get translation statistics
 
 		// System Translations (Public read with language support)
 		api.GET("/content/:entity_type/:entity_id", handlers.GetLocalizedContent) // Get localized content (categories, tags, menus, notifications)
 
+		// Unified Translation API (New comprehensive translation system)
+		unifiedTranslationHandler := handlers.NewUnifiedTranslationHandler()
+		api.GET("/translations/languages", unifiedTranslationHandler.GetSupportedLanguages)                            // Get supported languages
+		api.POST("/translations/ui/:language", unifiedTranslationHandler.TranslateUI)                                  // Translate UI message
+		api.GET("/translations/content/:entity_type/:entity_id/:language", unifiedTranslationHandler.TranslateContent) // Translate dynamic content
+		api.POST("/translations/ai", middleware.Authenticate(), unifiedTranslationHandler.RequestAITranslation)        // Request AI translation
+		api.GET("/translations/status/:job_id", unifiedTranslationHandler.GetTranslationStatus)                        // Get translation job status
+
 		// Article Translations (Authenticated CRUD)
-		api.POST("/v1/articles/:id/translations", middleware.Authenticate(), translationHandler.CreateArticleTranslation)             // Create translation
-		api.PUT("/v1/articles/:id/translations/:language", middleware.Authenticate(), translationHandler.UpdateArticleTranslation)    // Update translation
-		api.DELETE("/v1/articles/:id/translations/:language", middleware.Authenticate(), translationHandler.DeleteArticleTranslation) // Delete translation
+		api.POST("/articles/:id/translations", middleware.Authenticate(), translationHandler.CreateArticleTranslation)             // Create translation
+		api.PUT("/articles/:id/translations/:language", middleware.Authenticate(), translationHandler.UpdateArticleTranslation)    // Update translation
+		api.DELETE("/articles/:id/translations/:language", middleware.Authenticate(), translationHandler.DeleteArticleTranslation) // Delete translation
 
 		// Cache Monitoring Endpoints (Public read-only) - currently implemented
 		api.GET("/cache/stats", handlers.GetCacheStats)         // Cache performance statistics
@@ -407,6 +415,7 @@ func RegisterRoutes(r *gin.Engine) {
 		api.POST("/content-blocks/news-ticker", middleware.Authenticate(), handlers.CreateNewsTickerBlock)     // Create news ticker block
 		api.POST("/content-blocks/breaking-news", middleware.Authenticate(), handlers.CreateBreakingNewsBlock) // Create breaking news banner
 
+		// ...existing routes...
 	}
 
 	// v1 API routes with advanced features

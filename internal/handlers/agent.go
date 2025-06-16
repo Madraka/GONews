@@ -616,7 +616,7 @@ func processScheduledSummary(ctx context.Context, aiService *services.AIService,
 
 	since := time.Now().Add(-time.Duration(hours) * time.Hour)
 
-	if err := database.DB.Where("created_at >= ?", since).Order("created_at DESC").Limit(50).Find(&articles).Error; err != nil {
+	if err := database.DB.Preload("Author").Preload("Categories").Where("created_at >= ?", since).Order("created_at DESC").Limit(50).Find(&articles).Error; err != nil {
 		return nil, "Failed to fetch articles: " + err.Error()
 	}
 
@@ -654,7 +654,7 @@ func processBulkCategorization(ctx context.Context, aiService *services.AIServic
 		limit = 100
 	}
 
-	if err := database.DB.Where("category_id IS NULL OR category_id = 0").Limit(int(limit)).Find(&articles).Error; err != nil {
+	if err := database.DB.Preload("Author").Where("category_id IS NULL OR category_id = 0").Limit(int(limit)).Find(&articles).Error; err != nil {
 		return nil, "Failed to fetch articles: " + err.Error()
 	}
 

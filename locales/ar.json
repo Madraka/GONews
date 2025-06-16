@@ -1,0 +1,58 @@
+{
+  "errors": {
+    "general": {
+      "database_error": "حدث خطأ في قاعدة البيانات. يرجى المحاولة مرة أخرى لاحقاً.",
+      "bad_request": "طلب غير صالح. يرجى التحقق من المدخلات والمحاولة مرة أخرى.",
+      "search_failed": "فشلت عملية البحث. يرجى المحاولة مرة أخرى."
+    },
+    "validation": {
+      "invalid_id": "معرف غير صالح.",
+      "invalid_payload": "بيانات طلب غير صالحة.",
+      "language_required": "معامل اللغة مطلوب.",
+      "search_query_required": "استعلام البحث مطلوب."
+    },
+    "auth": {
+      "not_authenticated": "المصادقة مطلوبة. يرجى تسجيل الدخول.",
+      "invalid_user": "بيانات اعتماد المستخدم أو الصلاحيات غير صالحة."
+    },
+    "articles": {
+      "not_found": "المقال غير موجود."
+    },
+    "translations": {
+      "already_exists": "الترجمة موجودة بالفعل لهذه اللغة: {{.Language}}.",
+      "create_failed": "فشل في إنشاء الترجمة.",
+      "not_found": "الترجمة غير موجودة.",
+      "update_failed": "فشل في تحديث الترجمة.",
+      "delete_failed": "فشل في حذف الترجمة."
+    }
+  },
+  "success": {
+    "translations": {
+      "created": "تم إنشاء الترجمة بنجاح للغة: {{.Language}}.",
+      "updated": "تم تحديث الترجمة بنجاح للغة: {{.Language}}.",
+      "deleted": "تم حذف الترجمة بنجاح للغة: {{.Language}}."
+    }
+  },
+  "notifications": {
+    "welcome": {
+      "title": "مرحباً!",
+      "message": "مرحباً بك في منصة الأخبار، {{.UserName}}!"
+    },
+    "breaking_news": {
+      "title": "عاجل",
+      "message": "تحديث أخبار مهم: {{.Title}}"
+    },
+    "article_published": {
+      "title": "تم نشر المقال",
+      "message": "تم نشر مقالك '{{.Title}}' بنجاح."
+    },
+    "comment_reply": {
+      "title": "رد جديد",
+      "message": "{{.UserName}} رد على تعليقك في '{{.ArticleTitle}}'."
+    },
+    "system_maintenance": {
+      "title": "صيانة النظام",
+      "message": "صيانة النظام مجدولة من {{.StartTime}} إلى {{.EndTime}}."
+    }
+  }
+}

@@ -324,15 +324,15 @@ func (ArticleContentBlockTranslation) TableName() string {
 
 // BreakingNewsTranslation represents translated content for breaking news banners
 type BreakingNewsTranslation struct {
-	ID            uint           `gorm:"primaryKey" json:"id"`
-	BannerID      uint           `gorm:"not null;index" json:"banner_id"`
-	Language      string         `gorm:"size:5;not null;index" json:"language"`
-	Title         string         `gorm:"size:255;not null" json:"title"`
-	Content       string         `gorm:"type:text" json:"content"`
-	IsActive      bool           `gorm:"default:true" json:"is_active"`
-	CreatedAt     time.Time      `gorm:"autoCreateTime" json:"created_at"`
-	UpdatedAt     time.Time      `gorm:"autoUpdateTime" json:"updated_at"`
-	DeletedAt     gorm.DeletedAt `gorm:"index" json:"-"`
+	ID        uint           `gorm:"primaryKey" json:"id"`
+	BannerID  uint           `gorm:"not null;index" json:"banner_id"`
+	Language  string         `gorm:"size:5;not null;index" json:"language"`
+	Title     string         `gorm:"size:255;not null" json:"title"`
+	Content   string         `gorm:"type:text" json:"content"`
+	IsActive  bool           `gorm:"default:true" json:"is_active"`
+	CreatedAt time.Time      `gorm:"autoCreateTime" json:"created_at"`
+	UpdatedAt time.Time      `gorm:"autoUpdateTime" json:"updated_at"`
+	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
 
 	// Relations
 	Banner BreakingNewsBanner `gorm:"foreignKey:BannerID" json:"banner,omitempty"`
@@ -416,17 +416,17 @@ type LocalizedComment struct {
 
 // ErrorMessageTranslation represents translated error messages
 type ErrorMessageTranslation struct {
-	ID           uint           `gorm:"primaryKey" json:"id"`
-	ErrorCode    string         `gorm:"size:50;not null;index" json:"error_code"`
-	Language     string         `gorm:"size:5;not null;index" json:"language"`
-	Title        string         `gorm:"size:255" json:"title"`
-	Message      string         `gorm:"type:text;not null" json:"message"`
-	UserMessage  string         `gorm:"type:text" json:"user_message"`  // User-friendly message
-	Category     string         `gorm:"size:50;index" json:"category"`   // validation, system, auth, etc.
-	IsActive     bool           `gorm:"default:true" json:"is_active"`
-	CreatedAt    time.Time      `gorm:"autoCreateTime" json:"created_at"`
-	UpdatedAt    time.Time      `gorm:"autoUpdateTime" json:"updated_at"`
-	DeletedAt    gorm.DeletedAt `gorm:"index" json:"-"`
+	ID          uint           `gorm:"primaryKey" json:"id"`
+	ErrorCode   string         `gorm:"size:50;not null;index" json:"error_code"`
+	Language    string         `gorm:"size:5;not null;index" json:"language"`
+	Title       string         `gorm:"size:255" json:"title"`
+	Message     string         `gorm:"type:text;not null" json:"message"`
+	UserMessage string         `gorm:"type:text" json:"user_message"` // User-friendly message
+	Category    string         `gorm:"size:50;index" json:"category"` // validation, system, auth, etc.
+	IsActive    bool           `gorm:"default:true" json:"is_active"`
+	CreatedAt   time.Time      `gorm:"autoCreateTime" json:"created_at"`
+	UpdatedAt   time.Time      `gorm:"autoUpdateTime" json:"updated_at"`
+	DeletedAt   gorm.DeletedAt `gorm:"index" json:"-"`
 }
 
 // TableName specifies the table name for ErrorMessageTranslation
@@ -456,17 +456,17 @@ func (FormTranslation) TableName() string {
 
 // EmailTemplateTranslation represents translated email templates
 type EmailTemplateTranslation struct {
-	ID           uint           `gorm:"primaryKey" json:"id"`
-	TemplateKey  string         `gorm:"size:100;not null;index" json:"template_key"`
-	Language     string         `gorm:"size:5;not null;index" json:"language"`
-	Subject      string         `gorm:"size:255;not null" json:"subject"`
-	PlainBody    string         `gorm:"type:text" json:"plain_body"`
-	HTMLBody     string         `gorm:"type:text" json:"html_body"`
-	PreheaderText string        `gorm:"size:255" json:"preheader_text"`
-	IsActive     bool           `gorm:"default:true" json:"is_active"`
-	CreatedAt    time.Time      `gorm:"autoCreateTime" json:"created_at"`
-	UpdatedAt    time.Time      `gorm:"autoUpdateTime" json:"updated_at"`
-	DeletedAt    gorm.DeletedAt `gorm:"index" json:"-"`
+	ID            uint           `gorm:"primaryKey" json:"id"`
+	TemplateKey   string         `gorm:"size:100;not null;index" json:"template_key"`
+	Language      string         `gorm:"size:5;not null;index" json:"language"`
+	Subject       string         `gorm:"size:255;not null" json:"subject"`
+	PlainBody     string         `gorm:"type:text" json:"plain_body"`
+	HTMLBody      string         `gorm:"type:text" json:"html_body"`
+	PreheaderText string         `gorm:"size:255" json:"preheader_text"`
+	IsActive      bool           `gorm:"default:true" json:"is_active"`
+	CreatedAt     time.Time      `gorm:"autoCreateTime" json:"created_at"`
+	UpdatedAt     time.Time      `gorm:"autoUpdateTime" json:"updated_at"`
+	DeletedAt     gorm.DeletedAt `gorm:"index" json:"-"`
 }
 
 // TableName specifies the table name for EmailTemplateTranslation

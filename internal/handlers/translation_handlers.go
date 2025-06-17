@@ -124,7 +124,7 @@ func (h *TranslationHandler) GetSEOTranslation(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Param form path string true "Form key"
-// @Param field path string true "Field key"  
+// @Param field path string true "Field key"
 // @Param language query string false "Language code" default(en)
 // @Success 200 {object} models.FormTranslation
 // @Router /api/translations/forms/{form}/{field} [get]
@@ -202,11 +202,11 @@ func (h *TranslationHandler) GetCommentTranslation(c *gin.Context) {
 // @Produce json
 // @Param id path string true "Article ID"
 // @Param body body TranslationRequest true "Translation request"
-// @Success 200 {object} map[string]interface{}  
+// @Success 200 {object} map[string]interface{}
 // @Router /api/translations/articles/{id}/translate [post]
 func (h *TranslationHandler) TranslateArticle(c *gin.Context) {
 	idStr := c.Param("id")
-	
+
 	id, err := strconv.ParseUint(idStr, 10, 32)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid article ID"})
@@ -229,9 +229,9 @@ func (h *TranslationHandler) TranslateArticle(c *gin.Context) {
 	h.translationCache.InvalidateEntityTranslations("article", uint(id))
 
 	c.JSON(http.StatusOK, gin.H{
-		"message": "Article translation started",
+		"message":    "Article translation started",
 		"article_id": id,
-		"languages": req.TargetLanguages,
+		"languages":  req.TargetLanguages,
 	})
 }
 
@@ -247,7 +247,7 @@ func (h *TranslationHandler) TranslateArticle(c *gin.Context) {
 // @Router /api/translations/comments/{id}/translate [post]
 func (h *TranslationHandler) TranslateComment(c *gin.Context) {
 	idStr := c.Param("id")
-	
+
 	id, err := strconv.ParseUint(idStr, 10, 32)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid comment ID"})
@@ -267,9 +267,9 @@ func (h *TranslationHandler) TranslateComment(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"message": "Comment translation started",
+		"message":    "Comment translation started",
 		"comment_id": id,
-		"languages": req.TargetLanguages,
+		"languages":  req.TargetLanguages,
 	})
 }
 
@@ -296,9 +296,9 @@ func (h *TranslationHandler) BulkTranslateComments(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"message": "Bulk comment translation started",
+		"message":       "Bulk comment translation started",
 		"comment_count": len(req.CommentIDs),
-		"languages": req.TargetLanguages,
+		"languages":     req.TargetLanguages,
 	})
 }
 
@@ -314,7 +314,7 @@ func (h *TranslationHandler) GetCacheStats(c *gin.Context) {
 	stats := h.translationCache.GetCacheStats()
 	c.JSON(http.StatusOK, gin.H{
 		"cache_stats": stats,
-		"timestamp": h.GetCurrentTime(),
+		"timestamp":   h.GetCurrentTime(),
 	})
 }
 

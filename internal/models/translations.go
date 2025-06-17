@@ -37,19 +37,19 @@ type LocalizedTranslation struct {
 
 // SEOTranslation represents translations for SEO elements
 type SEOTranslation struct {
-	ID               uint           `gorm:"primaryKey" json:"id"`
-	EntityID         uint           `gorm:"not null;index:idx_seo_translation_entity" json:"entity_id"`
-	EntityType       string         `gorm:"size:50;not null;index:idx_seo_translation_entity" json:"entity_type"` // page, article
-	Language         string         `gorm:"size:5;not null;index:idx_seo_translation_entity" json:"language"`
-	Keywords         datatypes.JSON `gorm:"type:json" json:"keywords"`                     // Translated keywords array
-	OGTitle          string         `gorm:"size:255" json:"og_title,omitempty"`
-	OGDescription    string         `gorm:"type:text" json:"og_description,omitempty"`
-	TwitterTitle     string         `gorm:"size:255" json:"twitter_title,omitempty"`
-	TwitterDescription string       `gorm:"type:text" json:"twitter_description,omitempty"`
-	Schema           string         `gorm:"type:text" json:"schema,omitempty"`             // JSON-LD structured data
-	CreatedAt        time.Time      `gorm:"autoCreateTime" json:"created_at"`
-	UpdatedAt        time.Time      `gorm:"autoUpdateTime" json:"updated_at"`
-	DeletedAt        gorm.DeletedAt `gorm:"index" json:"-"`
+	ID                 uint           `gorm:"primaryKey" json:"id"`
+	EntityID           uint           `gorm:"not null;index:idx_seo_translation_entity" json:"entity_id"`
+	EntityType         string         `gorm:"size:50;not null;index:idx_seo_translation_entity" json:"entity_type"` // page, article
+	Language           string         `gorm:"size:5;not null;index:idx_seo_translation_entity" json:"language"`
+	Keywords           datatypes.JSON `gorm:"type:json" json:"keywords"` // Translated keywords array
+	OGTitle            string         `gorm:"size:255" json:"og_title,omitempty"`
+	OGDescription      string         `gorm:"type:text" json:"og_description,omitempty"`
+	TwitterTitle       string         `gorm:"size:255" json:"twitter_title,omitempty"`
+	TwitterDescription string         `gorm:"type:text" json:"twitter_description,omitempty"`
+	Schema             string         `gorm:"type:text" json:"schema,omitempty"` // JSON-LD structured data
+	CreatedAt          time.Time      `gorm:"autoCreateTime" json:"created_at"`
+	UpdatedAt          time.Time      `gorm:"autoUpdateTime" json:"updated_at"`
+	DeletedAt          gorm.DeletedAt `gorm:"index" json:"-"`
 }
 
 // TableName specifies the table name for SEOTranslation

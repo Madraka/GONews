@@ -329,21 +329,21 @@ func (ts *AITranslationService) TranslatePageContentBlock(blockID uint, targetLa
 					translatedMeta.AltText = translated
 				}
 			}
-			
+
 			// Translate caption
 			if caption, ok := settings["caption"].(string); ok && caption != "" {
 				if translated, err := ts.aiService.TranslateText(context.Background(), caption, "tr", targetLang); err == nil {
 					translatedMeta.Caption = translated
 				}
 			}
-			
+
 			// Translate title (for various block types)
 			if title, ok := settings["title"].(string); ok && title != "" {
 				if translated, err := ts.aiService.TranslateText(context.Background(), title, "tr", targetLang); err == nil {
 					translatedMeta.Title = translated
 				}
 			}
-			
+
 			// Translate button_text
 			if buttonText, ok := settings["button_text"].(string); ok && buttonText != "" {
 				if translated, err := ts.aiService.TranslateText(context.Background(), buttonText, "tr", targetLang); err == nil {
@@ -406,21 +406,21 @@ func (ts *AITranslationService) TranslateArticleContentBlock(blockID uint, targe
 					translatedMeta.AltText = translated
 				}
 			}
-			
+
 			// Translate caption
 			if caption, ok := settings["caption"].(string); ok && caption != "" {
 				if translated, err := ts.aiService.TranslateText(context.Background(), caption, "tr", targetLang); err == nil {
 					translatedMeta.Caption = translated
 				}
 			}
-			
+
 			// Translate title (for various block types)
 			if title, ok := settings["title"].(string); ok && title != "" {
 				if translated, err := ts.aiService.TranslateText(context.Background(), title, "tr", targetLang); err == nil {
 					translatedMeta.Title = translated
 				}
 			}
-			
+
 			// Translate button_text
 			if buttonText, ok := settings["button_text"].(string); ok && buttonText != "" {
 				if translated, err := ts.aiService.TranslateText(context.Background(), buttonText, "tr", targetLang); err == nil {
@@ -917,7 +917,7 @@ func (ts *AITranslationService) TranslateSEOSettings(entityID uint, entityType s
 	for _, targetLang := range targetLanguages {
 		// Check if translation already exists
 		var existing models.SEOTranslation
-		if err := ts.db.Where("entity_id = ? AND entity_type = ? AND language = ?", 
+		if err := ts.db.Where("entity_id = ? AND entity_type = ? AND language = ?",
 			entityID, entityType, targetLang).First(&existing).Error; err == nil {
 			continue // Translation already exists
 		}
@@ -928,7 +928,7 @@ func (ts *AITranslationService) TranslateSEOSettings(entityID uint, entityType s
 			if keyword == "" {
 				continue
 			}
-			
+
 			translatedKeyword, err := ts.aiService.TranslateText(context.Background(), keyword, "en", targetLang)
 			if err != nil {
 				log.Printf("Failed to translate keyword %s to %s: %v", keyword, targetLang, err)
@@ -940,7 +940,7 @@ func (ts *AITranslationService) TranslateSEOSettings(entityID uint, entityType s
 
 		// Translate OG and Twitter metadata
 		var ogTitle, ogDescription, twitterTitle, twitterDescription string
-		
+
 		if settings.OGTitle != "" {
 			if translated, err := ts.aiService.TranslateText(context.Background(), settings.OGTitle, "en", targetLang); err == nil {
 				ogTitle = translated
@@ -992,7 +992,7 @@ func (ts *AITranslationService) TranslateSEOSettings(entityID uint, entityType s
 
 		// Save translation
 		if err := ts.db.Create(&seoTranslation).Error; err != nil {
-			log.Printf("Failed to save SEO translation for %s %d in %s: %v", 
+			log.Printf("Failed to save SEO translation for %s %d in %s: %v",
 				entityType, entityID, targetLang, err)
 			continue
 		}
@@ -1027,7 +1027,7 @@ func (ts *AITranslationService) GetLocalizedSEOSettings(entityID uint, entityTyp
 
 	// Get translated SEO settings
 	var seoTranslation models.SEOTranslation
-	if err := ts.db.Where("entity_id = ? AND entity_type = ? AND language = ?", 
+	if err := ts.db.Where("entity_id = ? AND entity_type = ? AND language = ?",
 		entityID, entityType, language).First(&seoTranslation).Error; err != nil {
 		return localized // Return original if no translation found
 	}
@@ -1036,23 +1036,23 @@ func (ts *AITranslationService) GetLocalizedSEOSettings(entityID uint, entityTyp
 	if translatedKeywords := seoTranslation.GetKeywords(); len(translatedKeywords) > 0 {
 		localized.Keywords = translatedKeywords
 	}
-	
+
 	if seoTranslation.OGTitle != "" {
 		localized.OGTitle = seoTranslation.OGTitle
 	}
-	
+
 	if seoTranslation.OGDescription != "" {
 		localized.OGDescription = seoTranslation.OGDescription
 	}
-	
+
 	if seoTranslation.TwitterTitle != "" {
 		localized.TwitterTitle = seoTranslation.TwitterTitle
 	}
-	
+
 	if seoTranslation.TwitterDescription != "" {
 		localized.TwitterDescription = seoTranslation.TwitterDescription
 	}
-	
+
 	if seoTranslation.Schema != "" {
 		localized.Schema = seoTranslation.Schema
 	}
@@ -1191,7 +1191,7 @@ func (ts *AITranslationService) GetLocalizedComment(commentID uint, language str
 func (ts *AITranslationService) TranslateUIElements(category string, targetLanguages []string) error {
 	// Get existing translations for the category in English (base language)
 	var baseTranslations []models.Translation
-	if err := ts.db.Where("category = ? AND language = ? AND is_active = ?", 
+	if err := ts.db.Where("category = ? AND language = ? AND is_active = ?",
 		category, "en", true).Find(&baseTranslations).Error; err != nil {
 		return fmt.Errorf("failed to get base translations: %w", err)
 	}
@@ -1200,16 +1200,16 @@ func (ts *AITranslationService) TranslateUIElements(category string, targetLangu
 		for _, targetLang := range targetLanguages {
 			// Skip if already exists
 			var existing models.Translation
-			if err := ts.db.Where("key = ? AND language = ? AND category = ?", 
+			if err := ts.db.Where("key = ? AND language = ? AND category = ?",
 				baseTranslation.Key, targetLang, category).First(&existing).Error; err == nil {
 				continue
 			}
 
 			// Translate the value
-			translatedValue, err := ts.aiService.TranslateText(context.Background(), 
+			translatedValue, err := ts.aiService.TranslateText(context.Background(),
 				baseTranslation.Value, "en", targetLang)
 			if err != nil {
-				log.Printf("Failed to translate UI element %s to %s: %v", 
+				log.Printf("Failed to translate UI element %s to %s: %v",
 					baseTranslation.Key, targetLang, err)
 				continue
 			}
@@ -1224,7 +1224,7 @@ func (ts *AITranslationService) TranslateUIElements(category string, targetLangu
 			}
 
 			if err := ts.db.Create(&translation).Error; err != nil {
-				log.Printf("Failed to save UI translation %s in %s: %v", 
+				log.Printf("Failed to save UI translation %s in %s: %v",
 					baseTranslation.Key, targetLang, err)
 				continue
 			}
@@ -1250,7 +1250,7 @@ func (ts *AITranslationService) BulkTranslateComments(commentIDs []uint, targetL
 // InitializeUITranslationCategories creates predefined UI translation categories
 func (ts *AITranslationService) InitializeUITranslationCategories() error {
 	categories := models.PredefinedUITranslationCategories()
-	
+
 	for _, category := range categories {
 		var existing models.UITranslationCategory
 		if err := ts.db.Where("key = ?", category.Key).First(&existing).Error; err != nil {
@@ -1262,6 +1262,6 @@ func (ts *AITranslationService) InitializeUITranslationCategories() error {
 			log.Printf("UI translation category %s created", category.Key)
 		}
 	}
-	
+
 	return nil
 }

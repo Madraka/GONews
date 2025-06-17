@@ -41,17 +41,17 @@ func NewTranslationCache(redisClient *redis.Client) TranslationCache {
 
 // Cache keys
 const (
-	CacheKeyUITranslation       = "ui_translation:%s:%s"      // language:key
-	CacheKeyArticleTranslation  = "article_translation:%d:%s" // id:language
+	CacheKeyUITranslation       = "ui_translation:%s:%s"       // language:key
+	CacheKeyArticleTranslation  = "article_translation:%d:%s"  // id:language
 	CacheKeyCategoryTranslation = "category_translation:%d:%s" // id:language
-	CacheKeyTagTranslation      = "tag_translation:%d:%s"     // id:language
-	CacheKeyPageTranslation     = "page_translation:%d:%s"    // id:language
-	CacheKeyMenuTranslation     = "menu_translation:%d:%s"    // id:language
-	CacheKeySEOTranslation      = "seo_translation:%s:%d:%s"  // type:id:language
-	CacheKeyCommentTranslation  = "comment_translation:%d:%s" // id:language
-	CacheKeyFormTranslation     = "form_translation:%s:%s:%s" // form:field:language
-	CacheKeyErrorTranslation    = "error_translation:%s:%s"  // code:language
-	CacheKeyEmailTranslation    = "email_translation:%s:%s"  // template:language
+	CacheKeyTagTranslation      = "tag_translation:%d:%s"      // id:language
+	CacheKeyPageTranslation     = "page_translation:%d:%s"     // id:language
+	CacheKeyMenuTranslation     = "menu_translation:%d:%s"     // id:language
+	CacheKeySEOTranslation      = "seo_translation:%s:%d:%s"   // type:id:language
+	CacheKeyCommentTranslation  = "comment_translation:%d:%s"  // id:language
+	CacheKeyFormTranslation     = "form_translation:%s:%s:%s"  // form:field:language
+	CacheKeyErrorTranslation    = "error_translation:%s:%s"    // code:language
+	CacheKeyEmailTranslation    = "email_translation:%s:%s"    // template:language
 )
 
 // Cache expiration times

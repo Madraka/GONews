@@ -33,6 +33,7 @@ func RunAllSeeds(env string) error {
 		{"Pages", organized.SeedPages},
 		{"Menus", organized.SeedMenus},
 		{"Translations", organized.SeedTranslations},
+		{"Content Translations", organized.SeedContentTranslations},
 	}
 
 	for i, seed := range seeds {

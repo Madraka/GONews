@@ -3,6 +3,7 @@ package models
 import (
 	"time"
 
+	"gorm.io/datatypes"
 	"gorm.io/gorm"
 )
 
@@ -281,14 +282,15 @@ type LocalizedPage struct {
 
 // PageContentBlockTranslation represents translated content for page content blocks
 type PageContentBlockTranslation struct {
-	ID        uint           `gorm:"primaryKey" json:"id"`
-	BlockID   uint           `gorm:"not null;index" json:"block_id"`
-	Language  string         `gorm:"size:5;not null;index" json:"language"`
-	Content   string         `gorm:"type:text" json:"content"`
-	IsActive  bool           `gorm:"default:true" json:"is_active"`
-	CreatedAt time.Time      `gorm:"autoCreateTime" json:"created_at"`
-	UpdatedAt time.Time      `gorm:"autoUpdateTime" json:"updated_at"`
-	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
+	ID             uint           `gorm:"primaryKey" json:"id"`
+	BlockID        uint           `gorm:"not null;index" json:"block_id"`
+	Language       string         `gorm:"size:5;not null;index" json:"language"`
+	Content        string         `gorm:"type:text" json:"content"`
+	TranslatedMeta datatypes.JSON `gorm:"type:json" json:"translated_meta" swaggertype:"object"` // For alt_text, caption, titles etc.
+	IsActive       bool           `gorm:"default:true" json:"is_active"`
+	CreatedAt      time.Time      `gorm:"autoCreateTime" json:"created_at"`
+	UpdatedAt      time.Time      `gorm:"autoUpdateTime" json:"updated_at"`
+	DeletedAt      gorm.DeletedAt `gorm:"index" json:"-"`
 
 	// Relations
 	Block PageContentBlock `gorm:"foreignKey:BlockID" json:"block,omitempty"`
@@ -301,14 +303,15 @@ func (PageContentBlockTranslation) TableName() string {
 
 // ArticleContentBlockTranslation represents translated content for article content blocks
 type ArticleContentBlockTranslation struct {
-	ID        uint           `gorm:"primaryKey" json:"id"`
-	BlockID   uint           `gorm:"not null;index" json:"block_id"`
-	Language  string         `gorm:"size:5;not null;index" json:"language"`
-	Content   string         `gorm:"type:text" json:"content"`
-	IsActive  bool           `gorm:"default:true" json:"is_active"`
-	CreatedAt time.Time      `gorm:"autoCreateTime" json:"created_at"`
-	UpdatedAt time.Time      `gorm:"autoUpdateTime" json:"updated_at"`
-	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
+	ID             uint           `gorm:"primaryKey" json:"id"`
+	BlockID        uint           `gorm:"not null;index" json:"block_id"`
+	Language       string         `gorm:"size:5;not null;index" json:"language"`
+	Content        string         `gorm:"type:text" json:"content"`
+	TranslatedMeta datatypes.JSON `gorm:"type:json" json:"translated_meta" swaggertype:"object"` // For alt_text, caption, titles etc.
+	IsActive       bool           `gorm:"default:true" json:"is_active"`
+	CreatedAt      time.Time      `gorm:"autoCreateTime" json:"created_at"`
+	UpdatedAt      time.Time      `gorm:"autoUpdateTime" json:"updated_at"`
+	DeletedAt      gorm.DeletedAt `gorm:"index" json:"-"`
 
 	// Relations
 	Block ArticleContentBlock `gorm:"foreignKey:BlockID" json:"block,omitempty"`
@@ -317,4 +320,177 @@ type ArticleContentBlockTranslation struct {
 // TableName specifies the table name for ArticleContentBlockTranslation
 func (ArticleContentBlockTranslation) TableName() string {
 	return "article_content_block_translations"
+}
+
+// BreakingNewsTranslation represents translated content for breaking news banners
+type BreakingNewsTranslation struct {
+	ID            uint           `gorm:"primaryKey" json:"id"`
+	BannerID      uint           `gorm:"not null;index" json:"banner_id"`
+	Language      string         `gorm:"size:5;not null;index" json:"language"`
+	Title         string         `gorm:"size:255;not null" json:"title"`
+	Content       string         `gorm:"type:text" json:"content"`
+	IsActive      bool           `gorm:"default:true" json:"is_active"`
+	CreatedAt     time.Time      `gorm:"autoCreateTime" json:"created_at"`
+	UpdatedAt     time.Time      `gorm:"autoUpdateTime" json:"updated_at"`
+	DeletedAt     gorm.DeletedAt `gorm:"index" json:"-"`
+
+	// Relations
+	Banner BreakingNewsBanner `gorm:"foreignKey:BannerID" json:"banner,omitempty"`
+}
+
+// TableName specifies the table name for BreakingNewsTranslation
+func (BreakingNewsTranslation) TableName() string {
+	return "breaking_news_translations"
+}
+
+// LocalizedBreakingNews represents a breaking news banner with localized content
+type LocalizedBreakingNews struct {
+	ID              uint       `json:"id"`
+	Title           string     `json:"title"`
+	Content         string     `json:"content"`
+	ArticleID       *uint      `json:"article_id"`
+	Priority        int        `json:"priority"`
+	Style           string     `json:"style"`
+	TextColor       string     `json:"text_color"`
+	BackgroundColor string     `json:"background_color"`
+	StartTime       time.Time  `json:"start_time"`
+	EndTime         *time.Time `json:"end_time"`
+	IsActive        bool       `json:"is_active"`
+	Language        string     `json:"language"`
+	CreatedAt       time.Time  `json:"created_at"`
+	UpdatedAt       time.Time  `json:"updated_at"`
+}
+
+// UITranslationCategory represents predefined UI translation categories
+type UITranslationCategory struct {
+	ID          uint           `gorm:"primaryKey" json:"id"`
+	Key         string         `gorm:"size:50;not null;unique" json:"key"`
+	Name        string         `gorm:"size:100;not null" json:"name"`
+	Description string         `gorm:"type:text" json:"description"`
+	IsActive    bool           `gorm:"default:true" json:"is_active"`
+	SortOrder   int            `gorm:"default:0" json:"sort_order"`
+	CreatedAt   time.Time      `gorm:"autoCreateTime" json:"created_at"`
+	UpdatedAt   time.Time      `gorm:"autoUpdateTime" json:"updated_at"`
+	DeletedAt   gorm.DeletedAt `gorm:"index" json:"-"`
+}
+
+// TableName specifies the table name for UITranslationCategory
+func (UITranslationCategory) TableName() string {
+	return "ui_translation_categories"
+}
+
+// CommentTranslation represents translated content for user comments
+type CommentTranslation struct {
+	ID        uint           `gorm:"primaryKey" json:"id"`
+	CommentID uint           `gorm:"not null;index" json:"comment_id"`
+	Language  string         `gorm:"size:5;not null;index" json:"language"`
+	Content   string         `gorm:"type:text;not null" json:"content"`
+	IsActive  bool           `gorm:"default:true" json:"is_active"`
+	CreatedAt time.Time      `gorm:"autoCreateTime" json:"created_at"`
+	UpdatedAt time.Time      `gorm:"autoUpdateTime" json:"updated_at"`
+	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
+
+	// Relations
+	Comment Comment `gorm:"foreignKey:CommentID" json:"comment,omitempty"`
+}
+
+// TableName specifies the table name for CommentTranslation
+func (CommentTranslation) TableName() string {
+	return "comment_translations"
+}
+
+// LocalizedComment represents a comment with localized content
+type LocalizedComment struct {
+	ID         uint      `json:"id"`
+	ArticleID  uint      `json:"article_id"`
+	UserID     uint      `json:"user_id"`
+	ParentID   *uint     `json:"parent_id"`
+	Content    string    `json:"content"`
+	Status     string    `json:"status"`
+	LikeCount  int       `json:"like_count"`
+	Language   string    `json:"language"`
+	IsOriginal bool      `json:"is_original"` // Whether this is the original comment
+	CreatedAt  time.Time `json:"created_at"`
+	UpdatedAt  time.Time `json:"updated_at"`
+}
+
+// ErrorMessageTranslation represents translated error messages
+type ErrorMessageTranslation struct {
+	ID           uint           `gorm:"primaryKey" json:"id"`
+	ErrorCode    string         `gorm:"size:50;not null;index" json:"error_code"`
+	Language     string         `gorm:"size:5;not null;index" json:"language"`
+	Title        string         `gorm:"size:255" json:"title"`
+	Message      string         `gorm:"type:text;not null" json:"message"`
+	UserMessage  string         `gorm:"type:text" json:"user_message"`  // User-friendly message
+	Category     string         `gorm:"size:50;index" json:"category"`   // validation, system, auth, etc.
+	IsActive     bool           `gorm:"default:true" json:"is_active"`
+	CreatedAt    time.Time      `gorm:"autoCreateTime" json:"created_at"`
+	UpdatedAt    time.Time      `gorm:"autoUpdateTime" json:"updated_at"`
+	DeletedAt    gorm.DeletedAt `gorm:"index" json:"-"`
+}
+
+// TableName specifies the table name for ErrorMessageTranslation
+func (ErrorMessageTranslation) TableName() string {
+	return "error_message_translations"
+}
+
+// FormTranslation represents translated form labels and placeholders
+type FormTranslation struct {
+	ID          uint           `gorm:"primaryKey" json:"id"`
+	FormKey     string         `gorm:"size:100;not null;index" json:"form_key"`
+	FieldKey    string         `gorm:"size:100;not null;index" json:"field_key"`
+	Language    string         `gorm:"size:5;not null;index" json:"language"`
+	Label       string         `gorm:"size:255" json:"label"`
+	Placeholder string         `gorm:"size:255" json:"placeholder"`
+	HelpText    string         `gorm:"type:text" json:"help_text"`
+	IsActive    bool           `gorm:"default:true" json:"is_active"`
+	CreatedAt   time.Time      `gorm:"autoCreateTime" json:"created_at"`
+	UpdatedAt   time.Time      `gorm:"autoUpdateTime" json:"updated_at"`
+	DeletedAt   gorm.DeletedAt `gorm:"index" json:"-"`
+}
+
+// TableName specifies the table name for FormTranslation
+func (FormTranslation) TableName() string {
+	return "form_translations"
+}
+
+// EmailTemplateTranslation represents translated email templates
+type EmailTemplateTranslation struct {
+	ID           uint           `gorm:"primaryKey" json:"id"`
+	TemplateKey  string         `gorm:"size:100;not null;index" json:"template_key"`
+	Language     string         `gorm:"size:5;not null;index" json:"language"`
+	Subject      string         `gorm:"size:255;not null" json:"subject"`
+	PlainBody    string         `gorm:"type:text" json:"plain_body"`
+	HTMLBody     string         `gorm:"type:text" json:"html_body"`
+	PreheaderText string        `gorm:"size:255" json:"preheader_text"`
+	IsActive     bool           `gorm:"default:true" json:"is_active"`
+	CreatedAt    time.Time      `gorm:"autoCreateTime" json:"created_at"`
+	UpdatedAt    time.Time      `gorm:"autoUpdateTime" json:"updated_at"`
+	DeletedAt    gorm.DeletedAt `gorm:"index" json:"-"`
+}
+
+// TableName specifies the table name for EmailTemplateTranslation
+func (EmailTemplateTranslation) TableName() string {
+	return "email_template_translations"
+}
+
+// PredefinedUITranslationCategories returns standard UI translation categories
+func PredefinedUITranslationCategories() []UITranslationCategory {
+	return []UITranslationCategory{
+		{Key: "navigation", Name: "Navigation", Description: "Menu items, navigation links", SortOrder: 1},
+		{Key: "buttons", Name: "Buttons", Description: "Action buttons, links", SortOrder: 2},
+		{Key: "forms", Name: "Forms", Description: "Form labels, placeholders, validation messages", SortOrder: 3},
+		{Key: "messages", Name: "Messages", Description: "Success, error, info messages", SortOrder: 4},
+		{Key: "content", Name: "Content", Description: "Content-related labels and text", SortOrder: 5},
+		{Key: "auth", Name: "Authentication", Description: "Login, registration, password reset", SortOrder: 6},
+		{Key: "admin", Name: "Admin Panel", Description: "Admin interface translations", SortOrder: 7},
+		{Key: "search", Name: "Search", Description: "Search-related text", SortOrder: 8},
+		{Key: "pagination", Name: "Pagination", Description: "Page navigation text", SortOrder: 9},
+		{Key: "date_time", Name: "Date & Time", Description: "Date and time formats", SortOrder: 10},
+		{Key: "social", Name: "Social Media", Description: "Social sharing text", SortOrder: 11},
+		{Key: "comments", Name: "Comments", Description: "Comment system text", SortOrder: 12},
+		{Key: "newsletter", Name: "Newsletter", Description: "Newsletter subscription text", SortOrder: 13},
+		{Key: "footer", Name: "Footer", Description: "Footer content and links", SortOrder: 14},
+		{Key: "metadata", Name: "Metadata", Description: "SEO and meta descriptions", SortOrder: 15},
+	}
 }

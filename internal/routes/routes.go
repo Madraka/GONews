@@ -666,6 +666,30 @@ func RegisterRoutes(r *gin.Engine) {
 		ai.GET("/usage-stats", handlers.GetAIUsageStats)
 	}
 
+	// Translation API routes
+	translation := r.Group("/api/translations")
+	translation.Use(middleware.RateLimit(10, 20, true)) // 10 reqs/sec, burst of 20
+	{
+		// Public endpoints (no auth required for reading translations)
+		translation.GET("/ui/:language/:key", handlers.GetUITranslation)
+		translation.GET("/articles/:id", handlers.GetArticleTranslation)
+		translation.GET("/seo/:type/:id", handlers.GetSEOTranslation)
+		translation.GET("/forms/:form/:field", handlers.GetFormTranslation)
+		translation.GET("/errors/:code", handlers.GetErrorTranslation)
+		translation.GET("/comments/:id", handlers.GetCommentTranslation)
+
+		// Admin endpoints (auth required)
+		translationAdmin := translation.Group("")
+		translationAdmin.Use(middleware.Authenticate()) // Simple auth without role check for now
+		{
+			translationAdmin.POST("/articles/:id/translate", handlers.TranslateArticle)
+			translationAdmin.POST("/comments/:id/translate", handlers.TranslateComment)
+			translationAdmin.POST("/comments/bulk-translate", handlers.BulkTranslateComments)
+			translationAdmin.GET("/cache/stats", handlers.GetTranslationCacheStats)
+			translationAdmin.POST("/cache/invalidate", handlers.InvalidateCache)
+		}
+	}
+
 	// Agent API routes for n8n integration
 	agent := r.Group("/api/agent")
 	agent.Use(middleware.Authenticate(), middleware.RateLimit(5, 10, true)) // 5 reqs/sec, burst of 10

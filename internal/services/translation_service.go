@@ -2,6 +2,7 @@ package services
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"log"
 	"strings"
@@ -10,6 +11,7 @@ import (
 	"news/internal/database"
 	"news/internal/models"
 
+	"gorm.io/datatypes"
 	"gorm.io/gorm"
 )
 
@@ -51,7 +53,7 @@ func (ts *AITranslationService) TranslateCategory(categoryID uint, targetLanguag
 		// Translate using AI
 		translatedName, err := ts.aiService.TranslateText(context.Background(), category.Name, "tr", targetLang)
 		if err != nil {
-			log.Printf("Failed to translate category name: %v", err)
+			// Skip translation on error and continue
 			continue
 		}
 
@@ -59,7 +61,8 @@ func (ts *AITranslationService) TranslateCategory(categoryID uint, targetLanguag
 		if category.Description != "" {
 			translatedDesc, err = ts.aiService.TranslateText(context.Background(), category.Description, "tr", targetLang)
 			if err != nil {
-				log.Printf("Failed to translate category description: %v", err)
+				// Use empty description on error
+				translatedDesc = ""
 			}
 		}
 
@@ -316,10 +319,47 @@ func (ts *AITranslationService) TranslatePageContentBlock(blockID uint, targetLa
 			}
 		}
 
+		// Translate metadata from block settings
+		var translatedMeta models.TranslatedMetaData
+		var settings map[string]interface{}
+		if err := json.Unmarshal(block.Settings, &settings); err == nil {
+			// Translate alt_text
+			if altText, ok := settings["alt_text"].(string); ok && altText != "" {
+				if translated, err := ts.aiService.TranslateText(context.Background(), altText, "tr", targetLang); err == nil {
+					translatedMeta.AltText = translated
+				}
+			}
+			
+			// Translate caption
+			if caption, ok := settings["caption"].(string); ok && caption != "" {
+				if translated, err := ts.aiService.TranslateText(context.Background(), caption, "tr", targetLang); err == nil {
+					translatedMeta.Caption = translated
+				}
+			}
+			
+			// Translate title (for various block types)
+			if title, ok := settings["title"].(string); ok && title != "" {
+				if translated, err := ts.aiService.TranslateText(context.Background(), title, "tr", targetLang); err == nil {
+					translatedMeta.Title = translated
+				}
+			}
+			
+			// Translate button_text
+			if buttonText, ok := settings["button_text"].(string); ok && buttonText != "" {
+				if translated, err := ts.aiService.TranslateText(context.Background(), buttonText, "tr", targetLang); err == nil {
+					translatedMeta.ButtonText = translated
+				}
+			}
+		}
+
+		// Convert translated meta to JSON
+		metaJSON, _ := json.Marshal(translatedMeta)
+
 		translation := models.PageContentBlockTranslation{
-			BlockID:  blockID,
-			Language: targetLang,
-			Content:  translatedContent,
+			BlockID:        blockID,
+			Language:       targetLang,
+			Content:        translatedContent,
+			TranslatedMeta: datatypes.JSON(metaJSON),
 		}
 
 		if err := ts.db.Create(&translation).Error; err != nil {
@@ -356,14 +396,97 @@ func (ts *AITranslationService) TranslateArticleContentBlock(blockID uint, targe
 			}
 		}
 
+		// Translate metadata from block settings
+		var translatedMeta models.TranslatedMetaData
+		var settings map[string]interface{}
+		if err := json.Unmarshal(block.Settings, &settings); err == nil {
+			// Translate alt_text
+			if altText, ok := settings["alt_text"].(string); ok && altText != "" {
+				if translated, err := ts.aiService.TranslateText(context.Background(), altText, "tr", targetLang); err == nil {
+					translatedMeta.AltText = translated
+				}
+			}
+			
+			// Translate caption
+			if caption, ok := settings["caption"].(string); ok && caption != "" {
+				if translated, err := ts.aiService.TranslateText(context.Background(), caption, "tr", targetLang); err == nil {
+					translatedMeta.Caption = translated
+				}
+			}
+			
+			// Translate title (for various block types)
+			if title, ok := settings["title"].(string); ok && title != "" {
+				if translated, err := ts.aiService.TranslateText(context.Background(), title, "tr", targetLang); err == nil {
+					translatedMeta.Title = translated
+				}
+			}
+			
+			// Translate button_text
+			if buttonText, ok := settings["button_text"].(string); ok && buttonText != "" {
+				if translated, err := ts.aiService.TranslateText(context.Background(), buttonText, "tr", targetLang); err == nil {
+					translatedMeta.ButtonText = translated
+				}
+			}
+		}
+
+		// Convert translated meta to JSON
+		metaJSON, _ := json.Marshal(translatedMeta)
+
 		translation := models.ArticleContentBlockTranslation{
-			BlockID:  blockID,
-			Language: targetLang,
-			Content:  translatedContent,
+			BlockID:        blockID,
+			Language:       targetLang,
+			Content:        translatedContent,
+			TranslatedMeta: datatypes.JSON(metaJSON),
 		}
 
 		if err := ts.db.Create(&translation).Error; err != nil {
 			log.Printf("Failed to save article content block translation: %v", err)
+		}
+	}
+
+	return nil
+}
+
+// TranslateBreakingNews translates breaking news banners
+func (ts *AITranslationService) TranslateBreakingNews(bannerID uint, targetLanguages []string) error {
+	var banner models.BreakingNewsBanner
+	if err := ts.db.First(&banner, bannerID).Error; err != nil {
+		return fmt.Errorf("breaking news banner not found: %w", err)
+	}
+
+	for _, targetLang := range targetLanguages {
+		var existing models.BreakingNewsTranslation
+		if err := ts.db.Where("banner_id = ? AND language = ?", bannerID, targetLang).
+			First(&existing).Error; err == nil {
+			continue
+		}
+
+		// Translate title
+		translatedTitle, err := ts.aiService.TranslateText(context.Background(), banner.Title, "tr", targetLang)
+		if err != nil {
+			log.Printf("Failed to translate breaking news title: %v", err)
+			continue
+		}
+
+		// Translate content if exists
+		var translatedContent string
+		if banner.Content != "" {
+			translatedContent, err = ts.aiService.TranslateText(context.Background(), banner.Content, "tr", targetLang)
+			if err != nil {
+				log.Printf("Failed to translate breaking news content: %v", err)
+				translatedContent = banner.Content // fallback to original
+			}
+		}
+
+		translation := models.BreakingNewsTranslation{
+			BannerID: bannerID,
+			Language: targetLang,
+			Title:    translatedTitle,
+			Content:  translatedContent,
+		}
+
+		if err := ts.db.Create(&translation).Error; err != nil {
+			log.Printf("Failed to save breaking news translation: %v", err)
 		}
 	}
 
@@ -789,6 +912,154 @@ func (ts *AITranslationService) QueueTranslationsForArticle(articleID uint, requ
 	return nil
 }
 
+// TranslateSEOSettings translates SEO settings for pages and articles
+func (ts *AITranslationService) TranslateSEOSettings(entityID uint, entityType string, settings models.PageSEOSettings, targetLanguages []string) error {
+	for _, targetLang := range targetLanguages {
+		// Check if translation already exists
+		var existing models.SEOTranslation
+		if err := ts.db.Where("entity_id = ? AND entity_type = ? AND language = ?", 
+			entityID, entityType, targetLang).First(&existing).Error; err == nil {
+			continue // Translation already exists
+		}
+
+		// Translate keywords
+		var translatedKeywords []string
+		for _, keyword := range settings.Keywords {
+			if keyword == "" {
+				continue
+			}
+			
+			translatedKeyword, err := ts.aiService.TranslateText(context.Background(), keyword, "en", targetLang)
+			if err != nil {
+				log.Printf("Failed to translate keyword %s to %s: %v", keyword, targetLang, err)
+				translatedKeywords = append(translatedKeywords, keyword) // Use original on error
+			} else {
+				translatedKeywords = append(translatedKeywords, translatedKeyword)
+			}
+		}
+
+		// Translate OG and Twitter metadata
+		var ogTitle, ogDescription, twitterTitle, twitterDescription string
+		
+		if settings.OGTitle != "" {
+			if translated, err := ts.aiService.TranslateText(context.Background(), settings.OGTitle, "en", targetLang); err == nil {
+				ogTitle = translated
+			} else {
+				ogTitle = settings.OGTitle
+			}
+		}
+
+		if settings.OGDescription != "" {
+			if translated, err := ts.aiService.TranslateText(context.Background(), settings.OGDescription, "en", targetLang); err == nil {
+				ogDescription = translated
+			} else {
+				ogDescription = settings.OGDescription
+			}
+		}
+
+		if settings.TwitterTitle != "" {
+			if translated, err := ts.aiService.TranslateText(context.Background(), settings.TwitterTitle, "en", targetLang); err == nil {
+				twitterTitle = translated
+			} else {
+				twitterTitle = settings.TwitterTitle
+			}
+		}
+
+		if settings.TwitterDescription != "" {
+			if translated, err := ts.aiService.TranslateText(context.Background(), settings.TwitterDescription, "en", targetLang); err == nil {
+				twitterDescription = translated
+			} else {
+				twitterDescription = settings.TwitterDescription
+			}
+		}
+
+		// Create SEO translation record
+		seoTranslation := models.SEOTranslation{
+			EntityID:           entityID,
+			EntityType:         entityType,
+			Language:           targetLang,
+			OGTitle:            ogTitle,
+			OGDescription:      ogDescription,
+			TwitterTitle:       twitterTitle,
+			TwitterDescription: twitterDescription,
+			Schema:             settings.Schema, // Schema usually doesn't need translation
+		}
+
+		// Set translated keywords
+		if err := seoTranslation.SetKeywords(translatedKeywords); err != nil {
+			log.Printf("Failed to set translated keywords: %v", err)
+		}
+
+		// Save translation
+		if err := ts.db.Create(&seoTranslation).Error; err != nil {
+			log.Printf("Failed to save SEO translation for %s %d in %s: %v", 
+				entityType, entityID, targetLang, err)
+			continue
+		}
+
+		log.Printf("SEO translation created for %s %d in %s", entityType, entityID, targetLang)
+	}
+
+	return nil
+}
+
+// GetLocalizedSEOSettings retrieves SEO settings with translations
+func (ts *AITranslationService) GetLocalizedSEOSettings(entityID uint, entityType, language string, originalSettings models.PageSEOSettings) models.LocalizedSEOSettings {
+	localized := models.LocalizedSEOSettings{
+		Keywords:           originalSettings.Keywords,
+		CanonicalURL:       originalSettings.CanonicalURL,
+		RobotsIndex:        originalSettings.RobotsIndex,
+		RobotsFollow:       originalSettings.RobotsFollow,
+		OGTitle:            originalSettings.OGTitle,
+		OGDescription:      originalSettings.OGDescription,
+		OGImage:            originalSettings.OGImage,
+		TwitterCard:        originalSettings.TwitterCard,
+		TwitterTitle:       originalSettings.TwitterTitle,
+		TwitterDescription: originalSettings.TwitterDescription,
+		TwitterImage:       originalSettings.TwitterImage,
+		Schema:             originalSettings.Schema,
+	}
+
+	// If language is English or no translation needed, return original
+	if language == "en" {
+		return localized
+	}
+
+	// Get translated SEO settings
+	var seoTranslation models.SEOTranslation
+	if err := ts.db.Where("entity_id = ? AND entity_type = ? AND language = ?", 
+		entityID, entityType, language).First(&seoTranslation).Error; err != nil {
+		return localized // Return original if no translation found
+	}
+
+	// Apply translations
+	if translatedKeywords := seoTranslation.GetKeywords(); len(translatedKeywords) > 0 {
+		localized.Keywords = translatedKeywords
+	}
+	
+	if seoTranslation.OGTitle != "" {
+		localized.OGTitle = seoTranslation.OGTitle
+	}
+	
+	if seoTranslation.OGDescription != "" {
+		localized.OGDescription = seoTranslation.OGDescription
+	}
+	
+	if seoTranslation.TwitterTitle != "" {
+		localized.TwitterTitle = seoTranslation.TwitterTitle
+	}
+	
+	if seoTranslation.TwitterDescription != "" {
+		localized.TwitterDescription = seoTranslation.TwitterDescription
+	}
+	
+	if seoTranslation.Schema != "" {
+		localized.Schema = seoTranslation.Schema
+	}
+
+	return localized
+}
+
 // Helper function to generate slug (same as in article_translation.go)
 func generateSlug(title string) string {
 	slug := strings.ToLower(title)
@@ -829,4 +1100,168 @@ func generateSlug(title string) string {
 	}
 
 	return slug
+}
+
+// TranslateComment translates user comments automatically
+func (ts *AITranslationService) TranslateComment(commentID uint, targetLanguages []string) error {
+	var comment models.Comment
+	if err := ts.db.First(&comment, commentID).Error; err != nil {
+		return fmt.Errorf("comment not found: %w", err)
+	}
+
+	for _, targetLang := range targetLanguages {
+		// Skip if already translated
+		var existing models.CommentTranslation
+		if err := ts.db.Where("comment_id = ? AND language = ?", commentID, targetLang).
+			First(&existing).Error; err == nil {
+			continue
+		}
+
+		// Translate comment content
+		translatedContent, err := ts.aiService.TranslateText(context.Background(), comment.Content, "en", targetLang)
+		if err != nil {
+			log.Printf("Failed to translate comment %d to %s: %v", commentID, targetLang, err)
+			continue
+		}
+
+		// Create translation record
+		translation := models.CommentTranslation{
+			CommentID: commentID,
+			Language:  targetLang,
+			Content:   translatedContent,
+		}
+
+		if err := ts.db.Create(&translation).Error; err != nil {
+			log.Printf("Failed to save comment translation for %d in %s: %v", commentID, targetLang, err)
+			continue
+		}
+
+		log.Printf("Comment %d translated to %s", commentID, targetLang)
+	}
+
+	return nil
+}
+
+// GetLocalizedComment retrieves a comment with translation
+func (ts *AITranslationService) GetLocalizedComment(commentID uint, language string) (*models.LocalizedComment, error) {
+	var comment models.Comment
+	if err := ts.db.First(&comment, commentID).Error; err != nil {
+		return nil, fmt.Errorf("comment not found: %w", err)
+	}
+
+	// Get like count from votes
+	var likeCount int64
+	ts.db.Model(&models.Vote{}).Where("comment_id = ? AND type = ?", commentID, "like").Count(&likeCount)
+
+	localized := &models.LocalizedComment{
+		ID:         comment.ID,
+		ArticleID:  comment.ArticleID,
+		UserID:     comment.UserID,
+		ParentID:   comment.ParentID,
+		Content:    comment.Content,
+		Status:     comment.Status,
+		LikeCount:  int(likeCount),
+		Language:   language,
+		IsOriginal: language == "en", // Assuming English is default
+		CreatedAt:  comment.CreatedAt,
+		UpdatedAt:  comment.UpdatedAt,
+	}
+
+	// If requesting English or original language, return as is
+	if language == "en" {
+		return localized, nil
+	}
+
+	// Get translation
+	var translation models.CommentTranslation
+	if err := ts.db.Where("comment_id = ? AND language = ?", commentID, language).
+		First(&translation).Error; err != nil {
+		// Return original content if no translation available
+		return localized, nil
+	}
+
+	// Apply translated content
+	localized.Content = translation.Content
+	localized.IsOriginal = false
+
+	return localized, nil
+}
+
+// TranslateUIElements translates UI/system text elements
+func (ts *AITranslationService) TranslateUIElements(category string, targetLanguages []string) error {
+	// Get existing translations for the category in English (base language)
+	var baseTranslations []models.Translation
+	if err := ts.db.Where("category = ? AND language = ? AND is_active = ?", 
+		category, "en", true).Find(&baseTranslations).Error; err != nil {
+		return fmt.Errorf("failed to get base translations: %w", err)
+	}
+
+	for _, baseTranslation := range baseTranslations {
+		for _, targetLang := range targetLanguages {
+			// Skip if already exists
+			var existing models.Translation
+			if err := ts.db.Where("key = ? AND language = ? AND category = ?", 
+				baseTranslation.Key, targetLang, category).First(&existing).Error; err == nil {
+				continue
+			}
+
+			// Translate the value
+			translatedValue, err := ts.aiService.TranslateText(context.Background(), 
+				baseTranslation.Value, "en", targetLang)
+			if err != nil {
+				log.Printf("Failed to translate UI element %s to %s: %v", 
+					baseTranslation.Key, targetLang, err)
+				continue
+			}
+
+			// Create translation record
+			translation := models.Translation{
+				Key:      baseTranslation.Key,
+				Language: targetLang,
+				Value:    translatedValue,
+				Category: category,
+				IsActive: true,
+			}
+
+			if err := ts.db.Create(&translation).Error; err != nil {
+				log.Printf("Failed to save UI translation %s in %s: %v", 
+					baseTranslation.Key, targetLang, err)
+				continue
+			}
+
+			log.Printf("UI element %s translated to %s", baseTranslation.Key, targetLang)
+		}
+	}
+
+	return nil
+}
+
+// BulkTranslateComments translates multiple comments in batch
+func (ts *AITranslationService) BulkTranslateComments(commentIDs []uint, targetLanguages []string) error {
+	for _, commentID := range commentIDs {
+		if err := ts.TranslateComment(commentID, targetLanguages); err != nil {
+			log.Printf("Failed to translate comment %d: %v", commentID, err)
+			// Continue with other comments instead of failing completely
+		}
+	}
+	return nil
+}
+
+// InitializeUITranslationCategories creates predefined UI translation categories
+func (ts *AITranslationService) InitializeUITranslationCategories() error {
+	categories := models.PredefinedUITranslationCategories()
+	
+	for _, category := range categories {
+		var existing models.UITranslationCategory
+		if err := ts.db.Where("key = ?", category.Key).First(&existing).Error; err != nil {
+			// Category doesn't exist, create it
+			if err := ts.db.Create(&category).Error; err != nil {
+				log.Printf("Failed to create UI translation category %s: %v", category.Key, err)
+				continue
+			}
+			log.Printf("UI translation category %s created", category.Key)
+		}
+	}
+	
+	return nil
 }

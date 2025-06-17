@@ -7,6 +7,7 @@ import (
 	"runtime"
 	"strconv"
 
+	"news/internal/cache"
 	"news/internal/database"
 	"news/internal/models"
 	"news/internal/queue"
@@ -14,6 +15,79 @@ import (
 
 	"github.com/gin-gonic/gin"
 )
+
+// Global translation handler instance
+var translationHandler *TranslationHandler
+
+// InitializeTranslationHandler initializes the translation handler
+func InitializeTranslationHandler() {
+	if translationHandler == nil {
+		aiService := services.NewAIService()
+		translationService := services.NewAITranslationService(aiService)
+		translationCache := cache.NewTranslationCache(nil) // Redis client can be nil for now
+
+		translationHandler = NewTranslationHandler(translationService, translationCache)
+
+		// Warmup cache on initialization
+		go translationCache.WarmupCache([]string{"tr", "en", "es", "fr", "de", "ar", "ru"})
+	}
+}
+
+// Translation Handler Functions (Wrappers)
+func GetUITranslation(c *gin.Context) {
+	InitializeTranslationHandler()
+	translationHandler.GetUITranslation(c)
+}
+
+func GetArticleTranslation(c *gin.Context) {
+	InitializeTranslationHandler()
+	translationHandler.GetArticleTranslation(c)
+}
+
+func GetSEOTranslation(c *gin.Context) {
+	InitializeTranslationHandler()
+	translationHandler.GetSEOTranslation(c)
+}
+
+func GetFormTranslation(c *gin.Context) {
+	InitializeTranslationHandler()
+	translationHandler.GetFormTranslation(c)
+}
+
+func GetErrorTranslation(c *gin.Context) {
+	InitializeTranslationHandler()
+	translationHandler.GetErrorTranslation(c)
+}
+
+func GetCommentTranslation(c *gin.Context) {
+	InitializeTranslationHandler()
+	translationHandler.GetCommentTranslation(c)
+}
+
+func TranslateArticle(c *gin.Context) {
+	InitializeTranslationHandler()
+	translationHandler.TranslateArticle(c)
+}
+
+func TranslateComment(c *gin.Context) {
+	InitializeTranslationHandler()
+	translationHandler.TranslateComment(c)
+}
+
+func BulkTranslateComments(c *gin.Context) {
+	InitializeTranslationHandler()
+	translationHandler.BulkTranslateComments(c)
+}
+
+func GetTranslationCacheStats(c *gin.Context) {
+	InitializeTranslationHandler()
+	translationHandler.GetCacheStats(c)
+}
+
+func InvalidateCache(c *gin.Context) {
+	InitializeTranslationHandler()
+	translationHandler.InvalidateCache(c)
+}
 
 // GetTranslationProgress godoc
 // @Summary Get translation progress

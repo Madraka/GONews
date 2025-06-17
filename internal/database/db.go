@@ -194,6 +194,16 @@ func AutoMigrateModels() {
 		&models.MenuItemTranslation{},
 		&models.NotificationTranslation{},
 		&models.SettingTranslation{},
+		&models.PageTranslation{},
+		&models.PageContentBlockTranslation{},
+		&models.ArticleContentBlockTranslation{},
+		&models.BreakingNewsTranslation{},
+		&models.SEOTranslation{},
+		&models.UITranslationCategory{},
+		&models.CommentTranslation{},
+		&models.ErrorMessageTranslation{},
+		&models.FormTranslation{},
+		&models.EmailTemplateTranslation{},
 
 		// Article analytics models
 		&models.RelatedArticle{},

@@ -472,6 +472,20 @@ definitions:
       total_count:
         type: integer
     type: object
+  handlers.BulkTranslationRequest:
+    properties:
+      comment_ids:
+        items:
+          type: integer
+        type: array
+      target_languages:
+        items:
+          type: string
+        type: array
+    required:
+    - comment_ids
+    - target_languages
+    type: object
   handlers.ConnectionInfo:
     properties:
       cipher_suite:
@@ -738,6 +752,15 @@ definitions:
     required:
     - message
     - type
+    type: object
+  handlers.TranslationRequest:
+    properties:
+      target_languages:
+        items:
+          type: string
+        type: array
+    required:
+    - target_languages
     type: object
   handlers.UpdateCommentRequest:
     properties:
@@ -1016,6 +1039,9 @@ definitions:
         type: boolean
       language:
         type: string
+      translated_meta:
+        description: For alt_text, caption, titles etc.
+        type: object
       updated_at:
         type: string
     type: object
@@ -1316,6 +1342,31 @@ definitions:
     required:
     - content
     type: object
+  models.ErrorMessageTranslation:
+    properties:
+      category:
+        description: validation, system, auth, etc.
+        type: string
+      created_at:
+        type: string
+      error_code:
+        type: string
+      id:
+        type: integer
+      is_active:
+        type: boolean
+      language:
+        type: string
+      message:
+        type: string
+      title:
+        type: string
+      updated_at:
+        type: string
+      user_message:
+        description: User-friendly message
+        type: string
+    type: object
   models.ErrorResponse:
     properties:
       error:
@@ -1346,6 +1397,29 @@ definitions:
         type: integer
       id:
         type: integer
+    type: object
+  models.FormTranslation:
+    properties:
+      created_at:
+        type: string
+      field_key:
+        type: string
+      form_key:
+        type: string
+      help_text:
+        type: string
+      id:
+        type: integer
+      is_active:
+        type: boolean
+      label:
+        type: string
+      language:
+        type: string
+      placeholder:
+        type: string
+      updated_at:
+        type: string
     type: object
   models.GenerateContentRequest:
     properties:
@@ -1572,6 +1646,61 @@ definitions:
         type: string
       views:
         type: integer
+    type: object
+  models.LocalizedComment:
+    properties:
+      article_id:
+        type: integer
+      content:
+        type: string
+      created_at:
+        type: string
+      id:
+        type: integer
+      is_original:
+        description: Whether this is the original comment
+        type: boolean
+      language:
+        type: string
+      like_count:
+        type: integer
+      parent_id:
+        type: integer
+      status:
+        type: string
+      updated_at:
+        type: string
+      user_id:
+        type: integer
+    type: object
+  models.LocalizedSEOSettings:
+    properties:
+      canonical_url:
+        type: string
+      keywords:
+        items:
+          type: string
+        type: array
+      og_description:
+        type: string
+      og_image:
+        type: string
+      og_title:
+        type: string
+      robots_follow:
+        type: boolean
+      robots_index:
+        type: boolean
+      schema:
+        type: string
+      twitter_card:
+        type: string
+      twitter_description:
+        type: string
+      twitter_image:
+        type: string
+      twitter_title:
+        type: string
     type: object
   models.MapMarker:
     properties:
@@ -1958,6 +2087,9 @@ definitions:
         type: boolean
       language:
         type: string
+      translated_meta:
+        description: For alt_text, caption, titles etc.
+        type: object
       updated_at:
         type: string
     type: object
@@ -8114,6 +8246,175 @@ paths:
       summary: Request AI translation
       tags:
       - Translation
+  /api/translations/articles/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Get article with localized content
+      parameters:
+      - description: Article ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - default: en
+        description: Language code
+        in: query
+        name: language
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.LocalizedArticle'
+      summary: Get Article Translation
+      tags:
+      - translation
+  /api/translations/articles/{id}/translate:
+    post:
+      consumes:
+      - application/json
+      description: Trigger article translation to target languages
+      parameters:
+      - description: Article ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Translation request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.TranslationRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Translate Article
+      tags:
+      - translation
+  /api/translations/cache/invalidate:
+    post:
+      consumes:
+      - application/json
+      description: Invalidate translation cache by pattern
+      parameters:
+      - description: Cache pattern to invalidate
+        in: query
+        name: pattern
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Invalidate Cache
+      tags:
+      - translation
+  /api/translations/cache/stats:
+    get:
+      consumes:
+      - application/json
+      description: Get translation cache statistics
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Get Cache Stats
+      tags:
+      - translation
+  /api/translations/comments/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Get comment with localized content
+      parameters:
+      - description: Comment ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - default: en
+        description: Language code
+        in: query
+        name: language
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.LocalizedComment'
+      summary: Get Comment Translation
+      tags:
+      - translation
+  /api/translations/comments/{id}/translate:
+    post:
+      consumes:
+      - application/json
+      description: Trigger comment translation to target languages
+      parameters:
+      - description: Comment ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Translation request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.TranslationRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Translate Comment
+      tags:
+      - translation
+  /api/translations/comments/bulk-translate:
+    post:
+      consumes:
+      - application/json
+      description: Trigger bulk comment translation to target languages
+      parameters:
+      - description: Bulk translation request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.BulkTranslationRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Bulk Translate Comments
+      tags:
+      - translation
   /api/translations/content/{entity_type}/{entity_id}/{language}:
     get:
       consumes:
@@ -8157,6 +8458,63 @@ paths:
       summary: Translate dynamic content
       tags:
       - Translation
+  /api/translations/errors/{code}:
+    get:
+      consumes:
+      - application/json
+      description: Get error message translations
+      parameters:
+      - description: Error code
+        in: path
+        name: code
+        required: true
+        type: string
+      - default: en
+        description: Language code
+        in: query
+        name: language
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.ErrorMessageTranslation'
+      summary: Get Error Translation
+      tags:
+      - translation
+  /api/translations/forms/{form}/{field}:
+    get:
+      consumes:
+      - application/json
+      description: Get form field translations
+      parameters:
+      - description: Form key
+        in: path
+        name: form
+        required: true
+        type: string
+      - description: Field key
+        in: path
+        name: field
+        required: true
+        type: string
+      - default: en
+        description: Language code
+        in: query
+        name: language
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.FormTranslation'
+      summary: Get Form Translation
+      tags:
+      - translation
   /api/translations/languages:
     get:
       description: Get list of supported languages for the application
@@ -8170,6 +8528,37 @@ paths:
       summary: Get supported languages
       tags:
       - Translation
+  /api/translations/seo/{type}/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Get SEO settings with localized content
+      parameters:
+      - description: Entity type (page, article)
+        in: path
+        name: type
+        required: true
+        type: string
+      - description: Entity ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - default: en
+        description: Language code
+        in: query
+        name: language
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.LocalizedSEOSettings'
+      summary: Get SEO Translation
+      tags:
+      - translation
   /api/translations/status/{job_id}:
     get:
       description: Get status of a translation job
@@ -8237,6 +8626,33 @@ paths:
       summary: Translate UI message
       tags:
       - Translation
+  /api/translations/ui/{language}/{key}:
+    get:
+      consumes:
+      - application/json
+      description: Get translated UI text by key and language
+      parameters:
+      - description: Language code
+        in: path
+        name: language
+        required: true
+        type: string
+      - description: Translation key
+        in: path
+        name: key
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Get UI Translation
+      tags:
+      - translation
   /api/user/interactions:
     get:
       description: Get paginated list of user's interactions with articles

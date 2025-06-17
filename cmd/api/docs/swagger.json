@@ -7752,6 +7752,260 @@
                 }
             }
         },
+        "/api/translations/articles/{id}": {
+            "get": {
+                "description": "Get article with localized content",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "translation"
+                ],
+                "summary": "Get Article Translation",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Article ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "default": "en",
+                        "description": "Language code",
+                        "name": "language",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.LocalizedArticle"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/translations/articles/{id}/translate": {
+            "post": {
+                "description": "Trigger article translation to target languages",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "translation"
+                ],
+                "summary": "Translate Article",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Article ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Translation request",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/handlers.TranslationRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/api/translations/cache/invalidate": {
+            "post": {
+                "description": "Invalidate translation cache by pattern",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "translation"
+                ],
+                "summary": "Invalidate Cache",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Cache pattern to invalidate",
+                        "name": "pattern",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/api/translations/cache/stats": {
+            "get": {
+                "description": "Get translation cache statistics",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "translation"
+                ],
+                "summary": "Get Cache Stats",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/api/translations/comments/bulk-translate": {
+            "post": {
+                "description": "Trigger bulk comment translation to target languages",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "translation"
+                ],
+                "summary": "Bulk Translate Comments",
+                "parameters": [
+                    {
+                        "description": "Bulk translation request",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/handlers.BulkTranslationRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/api/translations/comments/{id}": {
+            "get": {
+                "description": "Get comment with localized content",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "translation"
+                ],
+                "summary": "Get Comment Translation",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Comment ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "default": "en",
+                        "description": "Language code",
+                        "name": "language",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.LocalizedComment"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/translations/comments/{id}/translate": {
+            "post": {
+                "description": "Trigger comment translation to target languages",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "translation"
+                ],
+                "summary": "Translate Comment",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Comment ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Translation request",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/handlers.TranslationRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
         "/api/translations/content/{entity_type}/{entity_id}/{language}": {
             "get": {
                 "description": "Translate dynamic content (article, category, tag, etc.) to specified language",
@@ -7814,6 +8068,91 @@
                 }
             }
         },
+        "/api/translations/errors/{code}": {
+            "get": {
+                "description": "Get error message translations",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "translation"
+                ],
+                "summary": "Get Error Translation",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Error code",
+                        "name": "code",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "default": "en",
+                        "description": "Language code",
+                        "name": "language",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorMessageTranslation"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/translations/forms/{form}/{field}": {
+            "get": {
+                "description": "Get form field translations",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "translation"
+                ],
+                "summary": "Get Form Translation",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Form key",
+                        "name": "form",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Field key",
+                        "name": "field",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "default": "en",
+                        "description": "Language code",
+                        "name": "language",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.FormTranslation"
+                        }
+                    }
+                }
+            }
+        },
         "/api/translations/languages": {
             "get": {
                 "description": "Get list of supported languages for the application",
@@ -7829,6 +8168,52 @@
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/models.SupportedLanguagesResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/translations/seo/{type}/{id}": {
+            "get": {
+                "description": "Get SEO settings with localized content",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "translation"
+                ],
+                "summary": "Get SEO Translation",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Entity type (page, article)",
+                        "name": "type",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Entity ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "default": "en",
+                        "description": "Language code",
+                        "name": "language",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.LocalizedSEOSettings"
                         }
                     }
                 }
@@ -7930,6 +8315,46 @@
                         "description": "Internal Server Error",
                         "schema": {
                             "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/translations/ui/{language}/{key}": {
+            "get": {
+                "description": "Get translated UI text by key and language",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "translation"
+                ],
+                "summary": "Get UI Translation",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Language code",
+                        "name": "language",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Translation key",
+                        "name": "key",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
                         }
                     }
                 }
@@ -12271,6 +12696,27 @@
                 }
             }
         },
+        "handlers.BulkTranslationRequest": {
+            "type": "object",
+            "required": [
+                "comment_ids",
+                "target_languages"
+            ],
+            "properties": {
+                "comment_ids": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "target_languages": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
         "handlers.ConnectionInfo": {
             "type": "object",
             "properties": {
@@ -12670,6 +13116,20 @@
                 "user_id": {
                     "description": "Required for user_notification type",
                     "type": "integer"
+                }
+            }
+        },
+        "handlers.TranslationRequest": {
+            "type": "object",
+            "required": [
+                "target_languages"
+            ],
+            "properties": {
+                "target_languages": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
                 }
             }
         },
@@ -13087,6 +13547,10 @@
                 },
                 "language": {
                     "type": "string"
+                },
+                "translated_meta": {
+                    "description": "For alt_text, caption, titles etc.",
+                    "type": "object"
                 },
                 "updated_at": {
                     "type": "string"
@@ -13548,6 +14012,43 @@
                 }
             }
         },
+        "models.ErrorMessageTranslation": {
+            "type": "object",
+            "properties": {
+                "category": {
+                    "description": "validation, system, auth, etc.",
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "error_code": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "is_active": {
+                    "type": "boolean"
+                },
+                "language": {
+                    "type": "string"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                },
+                "user_message": {
+                    "description": "User-friendly message",
+                    "type": "string"
+                }
+            }
+        },
         "models.ErrorResponse": {
             "type": "object",
             "properties": {
@@ -13595,6 +14096,41 @@
                 },
                 "id": {
                     "type": "integer"
+                }
+            }
+        },
+        "models.FormTranslation": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "field_key": {
+                    "type": "string"
+                },
+                "form_key": {
+                    "type": "string"
+                },
+                "help_text": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "is_active": {
+                    "type": "boolean"
+                },
+                "label": {
+                    "type": "string"
+                },
+                "language": {
+                    "type": "string"
+                },
+                "placeholder": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
                 }
             }
         },
@@ -13931,6 +14467,89 @@
                 },
                 "views": {
                     "type": "integer"
+                }
+            }
+        },
+        "models.LocalizedComment": {
+            "type": "object",
+            "properties": {
+                "article_id": {
+                    "type": "integer"
+                },
+                "content": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "is_original": {
+                    "description": "Whether this is the original comment",
+                    "type": "boolean"
+                },
+                "language": {
+                    "type": "string"
+                },
+                "like_count": {
+                    "type": "integer"
+                },
+                "parent_id": {
+                    "type": "integer"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                },
+                "user_id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "models.LocalizedSEOSettings": {
+            "type": "object",
+            "properties": {
+                "canonical_url": {
+                    "type": "string"
+                },
+                "keywords": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "og_description": {
+                    "type": "string"
+                },
+                "og_image": {
+                    "type": "string"
+                },
+                "og_title": {
+                    "type": "string"
+                },
+                "robots_follow": {
+                    "type": "boolean"
+                },
+                "robots_index": {
+                    "type": "boolean"
+                },
+                "schema": {
+                    "type": "string"
+                },
+                "twitter_card": {
+                    "type": "string"
+                },
+                "twitter_description": {
+                    "type": "string"
+                },
+                "twitter_image": {
+                    "type": "string"
+                },
+                "twitter_title": {
+                    "type": "string"
                 }
             }
         },
@@ -14523,6 +15142,10 @@
                 },
                 "language": {
                     "type": "string"
+                },
+                "translated_meta": {
+                    "description": "For alt_text, caption, titles etc.",
+                    "type": "object"
                 },
                 "updated_at": {
                     "type": "string"

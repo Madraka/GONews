@@ -11,6 +11,150 @@ import (
 func SeedTranslations(db *sqlx.DB) error {
 	fmt.Println("🌐 Seeding translations...")
 
+	// First, seed UI Translation Categories
+	categories := []map[string]interface{}{
+		{"key": "navigation", "name": "Navigation", "description": "Menu items, navigation links", "sort_order": 1},
+		{"key": "buttons", "name": "Buttons", "description": "Action buttons, links", "sort_order": 2},
+		{"key": "forms", "name": "Forms", "description": "Form labels, placeholders, validation messages", "sort_order": 3},
+		{"key": "messages", "name": "Messages", "description": "Success, error, info messages", "sort_order": 4},
+		{"key": "content", "name": "Content", "description": "Content-related labels and text", "sort_order": 5},
+		{"key": "auth", "name": "Authentication", "description": "Login, registration, password reset", "sort_order": 6},
+		{"key": "admin", "name": "Admin Panel", "description": "Admin interface translations", "sort_order": 7},
+		{"key": "search", "name": "Search", "description": "Search-related text", "sort_order": 8},
+		{"key": "pagination", "name": "Pagination", "description": "Page navigation text", "sort_order": 9},
+		{"key": "date_time", "name": "Date & Time", "description": "Date and time formats", "sort_order": 10},
+		{"key": "social", "name": "Social Media", "description": "Social sharing text", "sort_order": 11},
+		{"key": "comments", "name": "Comments", "description": "Comment system text", "sort_order": 12},
+		{"key": "newsletter", "name": "Newsletter", "description": "Newsletter subscription text", "sort_order": 13},
+		{"key": "footer", "name": "Footer", "description": "Footer content and links", "sort_order": 14},
+		{"key": "metadata", "name": "Metadata", "description": "SEO and meta descriptions", "sort_order": 15},
+	}
+
+	for _, category := range categories {
+		query := `INSERT INTO ui_translation_categories (key, name, description, sort_order, is_active, created_at, updated_at) 
+				  VALUES (:key, :name, :description, :sort_order, true, NOW(), NOW()) 
+				  ON CONFLICT (key) DO UPDATE SET 
+				  	name = EXCLUDED.name, 
+				  	description = EXCLUDED.description, 
+				  	sort_order = EXCLUDED.sort_order,
+				  	updated_at = NOW()`
+		_, err := db.NamedExec(query, category)
+		if err != nil {
+			log.Printf("Failed to insert UI translation category: %v", err)
+		}
+	}
+
+	// Seed Error Message Translations
+	errorMessages := []map[string]interface{}{
+		{"error_code": "validation_required", "language": "en", "title": "Required Field", "message": "This field is required", "user_message": "Please fill in this required field", "category": "validation"},
+		{"error_code": "validation_required", "language": "tr", "title": "Zorunlu Alan", "message": "Bu alan zorunludur", "user_message": "Lütfen bu zorunlu alanı doldurun", "category": "validation"},
+		{"error_code": "validation_required", "language": "es", "title": "Campo Requerido", "message": "Este campo es obligatorio", "user_message": "Por favor complete este campo obligatorio", "category": "validation"},
+
+		{"error_code": "validation_email", "language": "en", "title": "Invalid Email", "message": "Please enter a valid email address", "user_message": "Please enter a valid email address", "category": "validation"},
+		{"error_code": "validation_email", "language": "tr", "title": "Geçersiz Email", "message": "Geçerli bir email adresi girin", "user_message": "Geçerli bir email adresi girin", "category": "validation"},
+		{"error_code": "validation_email", "language": "es", "title": "Email Inválido", "message": "Ingrese una dirección de email válida", "user_message": "Ingrese una dirección de email válida", "category": "validation"},
+
+		{"error_code": "auth_failed", "language": "en", "title": "Authentication Failed", "message": "Invalid credentials provided", "user_message": "Invalid username or password", "category": "authentication"},
+		{"error_code": "auth_failed", "language": "tr", "title": "Giriş Başarısız", "message": "Geçersiz kimlik bilgileri", "user_message": "Geçersiz kullanıcı adı veya şifre", "category": "authentication"},
+		{"error_code": "auth_failed", "language": "es", "title": "Autenticación Fallida", "message": "Credenciales inválidas", "user_message": "Usuario o contraseña inválidos", "category": "authentication"},
+
+		{"error_code": "server_error", "language": "en", "title": "Server Error", "message": "An internal server error occurred", "user_message": "Something went wrong. Please try again later.", "category": "system"},
+		{"error_code": "server_error", "language": "tr", "title": "Sunucu Hatası", "message": "Sunucu hatası oluştu", "user_message": "Bir şeyler ters gitti. Lütfen daha sonra tekrar deneyin.", "category": "system"},
+		{"error_code": "server_error", "language": "es", "title": "Error del Servidor", "message": "Ocurrió un error interno del servidor", "user_message": "Algo salió mal. Inténtelo de nuevo más tarde.", "category": "system"},
+	}
+
+	for _, errorMsg := range errorMessages {
+		query := `INSERT INTO error_message_translations (error_code, language, title, message, user_message, category, is_active, created_at, updated_at) 
+				  VALUES (:error_code, :language, :title, :message, :user_message, :category, true, NOW(), NOW()) 
+				  ON CONFLICT (error_code, language) DO UPDATE SET 
+				  	title = EXCLUDED.title,
+				  	message = EXCLUDED.message, 
+				  	user_message = EXCLUDED.user_message,
+				  	updated_at = NOW()`
+		_, err := db.NamedExec(query, errorMsg)
+		if err != nil {
+			log.Printf("Failed to insert error message translation: %v", err)
+		}
+	}
+
+	// Seed Form Translations
+	formTranslations := []map[string]interface{}{
+		// Contact Form
+		{"form_key": "contact", "field_key": "name", "language": "en", "label": "Full Name", "placeholder": "Enter your full name", "help_text": "Please provide your first and last name"},
+		{"form_key": "contact", "field_key": "name", "language": "tr", "label": "Ad Soyad", "placeholder": "Adınızı ve soyadınızı girin", "help_text": "Lütfen adınızı ve soyadınızı belirtin"},
+		{"form_key": "contact", "field_key": "name", "language": "es", "label": "Nombre Completo", "placeholder": "Ingrese su nombre completo", "help_text": "Proporcione su nombre y apellido"},
+
+		{"form_key": "contact", "field_key": "email", "language": "en", "label": "Email Address", "placeholder": "Enter your email address", "help_text": "We will use this to contact you"},
+		{"form_key": "contact", "field_key": "email", "language": "tr", "label": "Email Adresi", "placeholder": "Email adresinizi girin", "help_text": "Sizinle iletişime geçmek için kullanacağız"},
+		{"form_key": "contact", "field_key": "email", "language": "es", "label": "Dirección de Email", "placeholder": "Ingrese su dirección de email", "help_text": "Usaremos esto için contactarlo"},
+
+		{"form_key": "contact", "field_key": "subject", "language": "en", "label": "Subject", "placeholder": "Enter the subject", "help_text": "Brief description of your inquiry"},
+		{"form_key": "contact", "field_key": "subject", "language": "tr", "label": "Konu", "placeholder": "Konuyu girin", "help_text": "Sorgunuzun kısa açıklaması"},
+		{"form_key": "contact", "field_key": "subject", "language": "es", "label": "Asunto", "placeholder": "Ingrese el asunto", "help_text": "Breve descripción de su consulta"},
+
+		{"form_key": "contact", "field_key": "message", "language": "en", "label": "Message", "placeholder": "Enter your message", "help_text": "Provide details about your inquiry"},
+		{"form_key": "contact", "field_key": "message", "language": "tr", "label": "Mesaj", "placeholder": "Mesajınızı girin", "help_text": "Sorgunuz hakkında detay verin"},
+		{"form_key": "contact", "field_key": "message", "language": "es", "label": "Mensaje", "placeholder": "Ingrese su mensaje", "help_text": "Proporcione detalles sobre su consulta"},
+
+		// Newsletter Form
+		{"form_key": "newsletter", "field_key": "email", "language": "en", "label": "Email Address", "placeholder": "Enter your email", "help_text": "Subscribe to our newsletter"},
+		{"form_key": "newsletter", "field_key": "email", "language": "tr", "label": "Email Adresi", "placeholder": "Email adresinizi girin", "help_text": "Bültenimize abone olun"},
+		{"form_key": "newsletter", "field_key": "email", "language": "es", "label": "Dirección de Email", "placeholder": "Ingrese su email", "help_text": "Suscríbase a nuestro boletín"},
+
+		// Login Form
+		{"form_key": "login", "field_key": "email", "language": "en", "label": "Email", "placeholder": "Enter your email", "help_text": "Your registered email address"},
+		{"form_key": "login", "field_key": "email", "language": "tr", "label": "Email", "placeholder": "Email adresinizi girin", "help_text": "Kayıtlı email adresiniz"},
+		{"form_key": "login", "field_key": "email", "language": "es", "label": "Email", "placeholder": "Ingrese su email", "help_text": "Su dirección de email registrada"},
+
+		{"form_key": "login", "field_key": "password", "language": "en", "label": "Password", "placeholder": "Enter your password", "help_text": "Your account password"},
+		{"form_key": "login", "field_key": "password", "language": "tr", "label": "Şifre", "placeholder": "Şifrenizi girin", "help_text": "Hesap şifreniz"},
+		{"form_key": "login", "field_key": "password", "language": "es", "label": "Contraseña", "placeholder": "Ingrese su contraseña", "help_text": "Su contraseña de cuenta"},
+	}
+
+	for _, formTrans := range formTranslations {
+		query := `INSERT INTO form_translations (form_key, field_key, language, label, placeholder, help_text, is_active, created_at, updated_at) 
+				  VALUES (:form_key, :field_key, :language, :label, :placeholder, :help_text, true, NOW(), NOW()) 
+				  ON CONFLICT (form_key, field_key, language) DO UPDATE SET 
+				  	label = EXCLUDED.label, 
+				  	placeholder = EXCLUDED.placeholder, 
+				  	help_text = EXCLUDED.help_text,
+				  	updated_at = NOW()`
+		_, err := db.NamedExec(query, formTrans)
+		if err != nil {
+			log.Printf("Failed to insert form translation: %v", err)
+		}
+	}
+
+	// Seed Email Template Translations
+	emailTemplates := []map[string]interface{}{
+		{"template_key": "welcome", "language": "en", "subject": "Welcome to Our News Platform", "plain_body": "Welcome to our news platform! Thank you for joining us.", "html_body": "<h1>Welcome!</h1><p>Thank you for joining our news platform.</p>", "preheader_text": "Welcome to our community"},
+		{"template_key": "welcome", "language": "tr", "subject": "Haber Platformumuza Hoş Geldiniz", "plain_body": "Haber platformumuza hoş geldiniz! Bize katıldığınız için teşekkürler.", "html_body": "<h1>Hoş Geldiniz!</h1><p>Haber platformumuza katıldığınız için teşekkürler.</p>", "preheader_text": "Topluluğumuza hoş geldiniz"},
+		{"template_key": "welcome", "language": "es", "subject": "Bienvenido a Nuestra Plataforma de Noticias", "plain_body": "¡Bienvenido a nuestra plataforma de noticias! Gracias por unirte a nosotros.", "html_body": "<h1>¡Bienvenido!</h1><p>Gracias por unirte a nuestra plataforma de noticias.</p>", "preheader_text": "Bienvenido a nuestra comunidad"},
+
+		{"template_key": "password_reset", "language": "en", "subject": "Password Reset Request", "plain_body": "You requested a password reset. Click the link to reset your password.", "html_body": "<h1>Password Reset</h1><p>Click the link below to reset your password.</p>", "preheader_text": "Reset your password"},
+		{"template_key": "password_reset", "language": "tr", "subject": "Şifre Sıfırlama Talebi", "plain_body": "Şifre sıfırlama talebinde bulundunuz. Şifrenizi sıfırlamak için bağlantıya tıklayın.", "html_body": "<h1>Şifre Sıfırlama</h1><p>Şifrenizi sıfırlamak için aşağıdaki bağlantıya tıklayın.</p>", "preheader_text": "Şifrenizi sıfırlayın"},
+		{"template_key": "password_reset", "language": "es", "subject": "Solicitud de Restablecimiento de Contraseña", "plain_body": "Solicitó restablecer su contraseña. Haga clic en el enlace para restablecerla.", "html_body": "<h1>Restablecimiento de Contraseña</h1><p>Haga clic en el enlace a continuación para restablecer su contraseña.</p>", "preheader_text": "Restablezca su contraseña"},
+
+		{"template_key": "newsletter", "language": "en", "subject": "Weekly Newsletter", "plain_body": "Here are this week's top stories.", "html_body": "<h1>Weekly Newsletter</h1><p>Here are this week's top stories.</p>", "preheader_text": "Your weekly news digest"},
+		{"template_key": "newsletter", "language": "tr", "subject": "Haftalık Bülten", "plain_body": "Bu haftanın en önemli haberleri.", "html_body": "<h1>Haftalık Bülten</h1><p>Bu haftanın en önemli haberleri.</p>", "preheader_text": "Haftalık haber özetiniz"},
+		{"template_key": "newsletter", "language": "es", "subject": "Boletín Semanal", "plain_body": "Aquí están las principales noticias de esta semana.", "html_body": "<h1>Boletín Semanal</h1><p>Aquí están las principales noticias de esta semana.</p>", "preheader_text": "Su resumen semanal de noticias"},
+	}
+
+	for _, emailTemplate := range emailTemplates {
+		query := `INSERT INTO email_template_translations (template_key, language, subject, plain_body, html_body, preheader_text, is_active, created_at, updated_at) 
+				  VALUES (:template_key, :language, :subject, :plain_body, :html_body, :preheader_text, true, NOW(), NOW()) 
+				  ON CONFLICT (template_key, language) DO UPDATE SET 
+				  	subject = EXCLUDED.subject, 
+				  	plain_body = EXCLUDED.plain_body, 
+				  	html_body = EXCLUDED.html_body,
+				  	preheader_text = EXCLUDED.preheader_text,
+				  	updated_at = NOW()`
+		_, err := db.NamedExec(query, emailTemplate)
+		if err != nil {
+			log.Printf("Failed to insert email template translation: %v", err)
+		}
+	}
+
 	// Common UI translations
 	translations := []map[string]interface{}{
 		// Navigation
